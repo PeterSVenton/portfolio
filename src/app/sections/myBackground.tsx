@@ -1,8 +1,6 @@
 import React from 'react'
 
-type MyBackgroundProps = {}
-
-const MyBackground = (props: MyBackgroundProps) => {
+const MyBackground = () => {
   return (
 <section className="max-w-3xl mx-auto px-4 py-12">
   <h1 className="text-5xl font-medium text-center mb-8">My Background</h1>

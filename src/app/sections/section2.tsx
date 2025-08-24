@@ -27,9 +27,8 @@ const Card = ({ title, description, imagesrc, imagealt, href }: CardProps) => {
   );
 };
 
-type Props = {};
 
-const Section2 = (props: Props) => {
+const Section2 = () => {
   return (
     <section className="mx-auto">
       <h1 className="text-5xl font-medium text-center mb-4">

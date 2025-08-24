@@ -1,8 +1,6 @@
 import React from 'react'
 
-type Props = {}
-
-const MdTitle = (props: Props) => {
+const MdTitle = () => {
   return (
     <h1 className='mx-auto'>MdTitle</h1>
   )

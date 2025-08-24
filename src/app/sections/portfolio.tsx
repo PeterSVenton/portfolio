@@ -1,8 +1,6 @@
 import React from 'react'
 
-type PortfolioProps = {}
-
-const Portfolio = (props: PortfolioProps) => {
+const Portfolio = () => {
   return (
     <section>
         <h1 className='text-5xl font-medium text-center mb-4'>Portfolio</h1>

@@ -9,16 +9,15 @@ const HeroMain = () => {
     return(
     <div className='flex flex-col gap-5'>
         <p className='text-5xl gap-0'>Hello,</p>
-        <p className='text-7xl'>I'm <span className='font-bold'>Peter Venton</span></p>
+        <p className='text-7xl'>I&apos;m <span className='font-bold'>Peter Venton</span></p>
         <p className='text-4xl text-balance'>A Microsoft Fabric & Power Platform expert who builds data ecosystems, not just dashboards.</p>
         <p className='text-2xl text-pretty'>I believe great in-house solutions start with structure. That means thoughtful data modeling, centralized measures, and a shared semantic layer that powers dashboards, apps, and insights with clarity and consistency. My goal is to help teams move beyond isolated reports and toward ecosystems that scale with their business.</p>
     </div>
     )
     
 }
-type HeroProps = {}
 
-const Hero = (props: HeroProps) => {
+const Hero = () => {
     const [userHasScrolled, setUserHasScrolled] = useState<boolean>(false)
 
     useEffect(() => {
