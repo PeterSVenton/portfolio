@@ -20,7 +20,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <GoogleTagManager gtmId="G-P6XTRVZP4H" />
+      <head>
+        {/* consentmanager script */}
+        <script type="text/javascript" data-cmp-ab="1" src="https://cdn.consentmanager.net/delivery/autoblocking/780fd577d2e68.js" data-cmp-host="d.delivery.consentmanager.net" data-cmp-cdn="cdn.consentmanager.net" data-cmp-codesrc="16"></script>
+        <GoogleTagManager gtmId="G-P6XTRVZP4H" />
+      </head>
 
       <body
         className={`${rubik.className} antialiased`}
