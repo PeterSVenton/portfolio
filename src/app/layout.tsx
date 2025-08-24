@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
+import { GoogleTagManager } from '@next/third-parties/google'
 import "./globals.css";
 
 const rubik = Rubik({
@@ -19,6 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <GoogleTagManager gtmId="G-P6XTRVZP4H" />
+
       <body
         className={`${rubik.className} antialiased`}
       >
