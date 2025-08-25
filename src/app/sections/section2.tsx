@@ -10,7 +10,7 @@ type CardProps = {
   imagealt: string;
   href: string;
 };
-const Card = ({ title, description, imagesrc, imagealt, href, ...rest }: CardProps) => {
+const Card = ({ title, description, imagesrc, imagealt, href }: CardProps) => {
   return (
     <li className="w-[80%] hover:bg-[#f4f4f4] transition-[background-color] duration-300 rounded-3xl p-3">
       <Link href={href} className="flex">
