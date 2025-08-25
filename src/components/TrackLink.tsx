@@ -5,7 +5,7 @@ import * as React from "react";
 
 type Props = Omit<React.ComponentProps<'a'>, 'href' | 'onClick'> & LinkProps & {
     gaEvent?: string;
-    gaParams?: Record<string, any>;
+    gaParams?: Record<string, string>;
   };
 
 export default function TrackLink({
@@ -22,7 +22,7 @@ export default function TrackLink({
         const h =
           typeof href === "string"
             ? href
-            : (href as any)?.pathname ?? String(href);
+            : href?.pathname ?? String(href);
         window.gtag?.("event", gaEvent, { href: h, ...gaParams });
       }}
     />
