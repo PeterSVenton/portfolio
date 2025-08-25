@@ -12,7 +12,6 @@ import { useState } from "react";
 
 const NAV = [
   { href: "/work", label: "Work" },
-  { href: "/services", label: "Services" },
   { href: "/experience", label: "Experience" },
   { href: "/articles", label: "Articles" },
   { href: "/about", label: "About" },
@@ -90,15 +89,15 @@ export default function Header() {
           })}
         </ul>
 
-        <Link
-          href="/contact"
+        <a
+          href="mailto:peterstevenventon@gmail.com"
           className="rounded-xl bg-black px-3 py-2 text-sm text-white"
           onClick={() =>
             window.gtag?.("event", "cta_click", { label: "Get In Touch" })
           }
         >
           Get In Touch
-        </Link>
+        </a>
       </nav>
     </motion.header>
   );

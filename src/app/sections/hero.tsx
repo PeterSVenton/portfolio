@@ -12,6 +12,10 @@ const HeroMain = () => {
         <p className='text-7xl'>I&apos;m <span className='font-bold'>Peter Venton</span></p>
         <p className='text-4xl text-balance'>A Microsoft Fabric & Power Platform expert who builds data ecosystems, not just dashboards.</p>
         <p className='text-2xl text-pretty'>I believe great in-house solutions start with structure. That means thoughtful data modeling, centralized measures, and a shared semantic layer that powers dashboards, apps, and insights with clarity and consistency. My goal is to help teams move beyond isolated reports and toward ecosystems that scale with their business.</p>
+        <div className="mt-6 flex gap-3">
+        <a href="/work" className="rounded-xl border px-4 py-2">View Work</a>
+        <a href="mailto:peterstevenventon@gmail.com" className="rounded-xl bg-black px-4 py-2 text-white">Get In Touch</a>
+        </div>
     </div>
     )
     
@@ -48,7 +52,7 @@ const Hero = () => {
             </div>
         </div>
 
-        <div className={`absolute bottom-8 transition-opacity duration-700 ease-in-out ${userHasScrolled ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`absolute bottom-0 -translate-y-20 transition-opacity duration-700 ease-in-out ${userHasScrolled ? 'opacity-0' : 'opacity-100'}`}>
             <div className='flex justify-center align-center animate-bounce'>
             <p>Scroll</p>
             <MoveDown/>
