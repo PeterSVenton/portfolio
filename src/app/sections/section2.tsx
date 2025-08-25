@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+
+
 type CardProps = {
   title: string;
   description: string;
@@ -8,7 +10,7 @@ type CardProps = {
   imagealt: string;
   href: string;
 };
-const Card = ({ title, description, imagesrc, imagealt, href }: CardProps) => {
+const Card = ({ title, description, imagesrc, imagealt, href, ...rest }: CardProps) => {
   return (
     <li className="w-[80%] hover:bg-[#f4f4f4] transition-[background-color] duration-300 rounded-3xl p-3">
       <Link href={href} className="flex">
@@ -34,6 +36,7 @@ const Section2 = () => {
       <h1 className="text-5xl font-medium text-center mb-4">
         BI Built to Scale, Designed to Last
       </h1>
+
       <ul className="flex flex-col items-center gap-8">
         <Card
           href={"/longGame"}

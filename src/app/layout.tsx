@@ -4,6 +4,7 @@ import { GoogleAnalytics } from '@next/third-parties/google'
 import Script from 'next/script';
 
 import "./globals.css";
+import Header from "@/components/Header";
 
 const rubik = Rubik({
   variable: "--font-rubik",
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body
         className={`${rubik.className} antialiased`}
       >
+        <Header />
         {children}
       </body>
     </html>

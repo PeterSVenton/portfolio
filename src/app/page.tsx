@@ -3,6 +3,11 @@ import MyBackground from "./sections/myBackground";
 import Portfolio from "./sections/portfolio";
 import Section2 from "./sections/section2";
 
+export const metadata = {
+  title: 'Peter Venton — BI that scales beyond dashboards',
+  description: 'Microsoft Fabric & Power Platform expert building scalable BI ecosystems.',
+}
+
 export default function Home() {
   return (
     <>
