@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
-import { GoogleAnalytics } from '@next/third-parties/google'
-import Script from 'next/script';
+import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 
 import "./globals.css";
 import Header from "@/components/Header";
 
 const rubik = Rubik({
   variable: "--font-rubik",
-  subsets: ["latin"]
-})
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,13 +25,19 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* consentmanager script https://help.consentmanager.net/books/cmp/page/implementation-using-server-side-rendering */}
-        <Script strategy="afterInteractive" type="text/javascript" data-cmp-ab="1" src="https://cdn.consentmanager.net/delivery/autoblocking/780fd577d2e68.js" data-cmp-host="d.delivery.consentmanager.net" data-cmp-cdn="cdn.consentmanager.net" data-cmp-codesrc="16"></Script>
+        <Script
+          strategy="afterInteractive"
+          type="text/javascript"
+          data-cmp-ab="1"
+          src="https://cdn.consentmanager.net/delivery/autoblocking/780fd577d2e68.js"
+          data-cmp-host="d.delivery.consentmanager.net"
+          data-cmp-cdn="cdn.consentmanager.net"
+          data-cmp-codesrc="16"
+          ></Script>
         <GoogleAnalytics gaId="G-P6XTRVZP4H" />
       </head>
 
-      <body
-        className={`${rubik.className} antialiased`}
-      >
+      <body className={`${rubik.className} antialiased`}>
         <Header />
         {children}
       </body>

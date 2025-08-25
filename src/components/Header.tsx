@@ -1,4 +1,3 @@
-// components/Header.tsx
 "use client";
 
 import Link from "next/link";
@@ -15,6 +14,7 @@ const NAV = [
   { href: "/work", label: "Work" },
   { href: "/services", label: "Services" },
   { href: "/experience", label: "Experience" },
+  { href: "/articles", label: "Articles" },
   { href: "/about", label: "About" },
 ];
 
