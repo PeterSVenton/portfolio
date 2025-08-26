@@ -8,7 +8,7 @@ export const metadata = {
 
 type ArticleKind = keyof typeof WRITING_CONFIG
 
-export const WRITING_CONFIG: Record<string, {
+const WRITING_CONFIG: Record<string, {
   header: string
   description: string
   href: string

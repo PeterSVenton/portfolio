@@ -4,7 +4,6 @@ import TrackLink from '@/components/TrackLink'
 import TechChip from '@/components/TechChip'
 import { Tech } from '@/data/tech'
 import { SocialOrder, Socials } from '@/data/socials' // expects { icon: LucideIcon, label, href }
-import { LucideGithub, LucideLinkedin } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'About',
