@@ -6,9 +6,9 @@ export const metadata = {
   description: 'Technical BI patterns and plain-English explainers.',
 }
 
-type ArticleKind = "DeepDive" | "Explainer"
+type ArticleKind = keyof typeof WRITING_CONFIG
 
-const CONFIG: Record<ArticleKind, {
+export const WRITING_CONFIG: Record<string, {
   header: string
   description: string
   href: string
@@ -26,17 +26,24 @@ const CONFIG: Record<ArticleKind, {
     href: "/articles/explainers",
     count: explainers.length,
   },
+
+  Reading: {
+    header: "Readings",
+    description: "Plain-English takeaways and outcomes for non-tech readers.",
+    href: "/readings",
+    count: explainers.length,
+  }
 }
 
 const ArticleItem = ({kind}: {kind: ArticleKind}) => {
-    const { header, description, href, count } = CONFIG[kind]
+    const { header, description, href, count } = WRITING_CONFIG[kind]
     return (
     <li className="rounded-2xl border p-6 hover:bg-black/5">
         <h2 className="text-2xl font-semibold">{header}</h2>
         <p className="mt-2 text-neutral-700">{description}</p>
         <p className="mt-4 text-sm text-neutral-500">{count} {count > 1 ? "articles" : "article"}</p>
         <Link href={href} className="mt-4 inline-block text-blue-600">
-        Browse Deep Dives &rarr;
+        Browse {header} &rarr;
         </Link>
     </li>
     )

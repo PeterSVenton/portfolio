@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react'
 import { MoveDown } from 'lucide-react';
+import { Socials } from '@/data/socials';
 
 
 
@@ -14,7 +15,7 @@ const HeroMain = () => {
         <p className='text-2xl text-pretty'>I believe great in-house solutions start with structure. That means thoughtful data modeling, centralized measures, and a shared semantic layer that powers dashboards, apps, and insights with clarity and consistency. My goal is to help teams move beyond isolated reports and toward ecosystems that scale with their business.</p>
         <div className="mt-6 flex gap-3">
         <a href="/work" className="rounded-xl border px-4 py-2">View Work</a>
-        <a href="mailto:peterstevenventon@gmail.com" className="rounded-xl bg-black px-4 py-2 text-white">Get In Touch</a>
+        <a href={Socials.Email.href} className="rounded-xl bg-black px-4 py-2 text-white">Get In Touch</a>
         </div>
     </div>
     )

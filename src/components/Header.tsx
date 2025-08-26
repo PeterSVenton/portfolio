@@ -9,12 +9,13 @@ import {
   useMotionValueEvent,
 } from "framer-motion";
 import { useState } from "react";
+import { Socials } from "@/data/socials";
 
 const NAV = [
   { href: "/work", label: "Work" },
   { href: "/experience", label: "Experience" },
   { href: "/articles", label: "Articles" },
-  { href: "/about", label: "About" },
+  { href: "/about", label: "About Me" },
 ];
 
 export default function Header() {
@@ -90,7 +91,7 @@ export default function Header() {
         </ul>
 
         <a
-          href="mailto:peterstevenventon@gmail.com"
+          href={Socials.Email.href}
           className="rounded-xl bg-black px-3 py-2 text-sm text-white"
           onClick={() =>
             window.gtag?.("event", "cta_click", { label: "Get In Touch" })
