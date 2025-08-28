@@ -1,7 +1,6 @@
 "use client"
 import Image from 'next/image';
-import React, { useState, useEffect } from 'react'
-import { MoveDown } from 'lucide-react';
+import React from 'react'
 import { Socials } from '@/data/socials';
 
 
@@ -23,23 +22,9 @@ const HeroMain = () => {
 }
 
 const Hero = () => {
-    const [userHasScrolled, setUserHasScrolled] = useState<boolean>(false)
-
-    useEffect(() => {
-        const handleScroll = () => {
-          if (window.scrollY > 10) {
-            setUserHasScrolled(true)
-          }
-        }
-    
-        window.addEventListener('scroll', handleScroll)
-        
-        return () => {
-          window.removeEventListener('scroll', handleScroll)
-        }
-      }, [])
   return (
-    <div className='h-screen flex flex-col items-center justify-center p-8 relative'>
+    // header is 3.5rem tall so -3.5rem adjusts it so this is h-screen
+    <div className='h-screen mt-[-3.5rem] flex flex-col items-center justify-center p-8 relative'> 
         <div className='flex gap-30 justify-center items-center'>
             <HeroMain/>
             <div className="relative h-96 aspect-square">
@@ -50,13 +35,6 @@ const Hero = () => {
                 className="object-cover rounded-xl"
                 priority
             />
-            </div>
-        </div>
-
-        <div className={`absolute bottom-0 -translate-y-20 transition-opacity duration-700 ease-in-out ${userHasScrolled ? 'opacity-0' : 'opacity-100'}`}>
-            <div className='flex justify-center align-center animate-bounce'>
-            <p>Scroll</p>
-            <MoveDown/>
             </div>
         </div>
     </div>
