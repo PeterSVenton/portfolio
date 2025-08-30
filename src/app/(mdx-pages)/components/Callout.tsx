@@ -1,4 +1,5 @@
 import { Info, CheckCircle2, AlertTriangle, ShieldAlert, Lightbulb, type LucideIcon } from 'lucide-react'
+import React from 'react';
 
 type Kind = 'info' | 'success' | 'warning' | 'danger' | 'tip'
 
