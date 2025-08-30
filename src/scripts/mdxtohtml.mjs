@@ -77,7 +77,7 @@ async function run() {
   }
 
   // build just the provided slugs/paths
-  for (const arg of targets) {
+  for (const arg of args) {
     const abs = path.resolve(arg)
     try { await compileOne(abs); console.log('generated html for', abs) }
     catch (e) { console.error('failed to generate html for', abs, '\n', e) }
