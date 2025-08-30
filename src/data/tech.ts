@@ -12,6 +12,9 @@ export enum Tech {
   ScikitLearn = "scikit-learn",
   Manim = "Manim",
 
+  Typescript = "Typescript",
+  React = "React",
+
   Azure = "Azure",
   AWS = "AWS",
 }
@@ -104,6 +107,17 @@ export const TECH_META: Record<Tech, TechMeta> = {
     url: "https://www.manim.community/",
     category: TechCategory.Tooling,
   },
+
+   [Tech.Typescript]: {
+    label: "Typescript",
+    url: "https://www.typescriptlang.org/",
+    category: TechCategory.Language,
+    },
+   [Tech.React]: {
+    label: "React",
+    url: "https://react.dev/",
+    category: TechCategory.Language,
+    },
 
   [Tech.Azure]: {
     label: "Azure",

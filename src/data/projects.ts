@@ -14,7 +14,7 @@ export type Project = {
     repo?: string
     demo?: string
   }
-  tags?: string[]                 //for lower grain filtering
+  tags?: string[] //for lower grain filtering
 }
 
 export const projects: Project[] = [
@@ -25,6 +25,15 @@ export const projects: Project[] = [
     period: '2024',
     context: 'Company project',
     stack: [Tech.PowerBI, Tech.ReportBuilder, Tech.SQL],
+  },
+    {
+    slug: 'personal-portfolio',
+    title: 'This Website',
+    summary: 'Built this personal portfolio to showcase my skillset',
+    period: '2025',
+    context: 'Personal project',
+    stack: [Tech.Typescript, Tech.React, Tech.AWS],
+    links: { repo: 'https://github.com/your-handle/delta-demo' },
   },
   {
     slug: 'ga4-databricks',
