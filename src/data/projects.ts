@@ -35,5 +35,4 @@ export const projects: Project[] = [
     stack: [Tech.Typescript, Tech.React, Tech.AWS],
     links: { repo: 'https://github.com/PeterSVenton/portfolio' },
   }
-
 ]
