@@ -33,15 +33,7 @@ export const projects: Project[] = [
     period: '2025',
     context: 'Personal project',
     stack: [Tech.Typescript, Tech.React, Tech.AWS],
-    links: { repo: 'https://github.com/your-handle/delta-demo' },
-  },
-  {
-    slug: 'ga4-databricks',
-    title: 'Website Stats',
-    summary: 'A PowerBI dashboard built off of this website\'s GA4 metrics. From ingesting the data at source with databricks to creating a dashboard for quick and easy interpretation',
-    period: '2025',
-    context: 'Personal project',
-    stack: [Tech.Python, Tech.Azure],
-    links: { repo: 'https://github.com/your-handle/delta-demo' },
-  },
+    links: { repo: 'https://github.com/PeterSVenton/portfolio' },
+  }
+
 ]

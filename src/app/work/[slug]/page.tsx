@@ -1,3 +1,5 @@
+import { projects } from "@/data/projects"
+
 export default async function Page({
   params,
 }: {
@@ -10,7 +12,9 @@ export default async function Page({
 }
  
 export function generateStaticParams() {
-  return [{ slug: 'report-migration' }, { slug: 'personal-portfolio' }]
+    // TODO: check that the slugs project exist so we don't have dead routes
+  const slugs = projects.map(p => ({ slug: p.slug })) 
+  return slugs
 }
  
 export const dynamicParams = false

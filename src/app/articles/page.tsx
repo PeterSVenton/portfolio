@@ -1,66 +1,87 @@
 import Link from 'next/link'
-import { deepDives, explainers } from '@/data/articles'
+import { articles, type Article } from '@/data/articles'
+import clsx from 'clsx'
+
+type ArticleType = Article['type']                
+type FilterKind = 'All' | ArticleType            
+
+const TYPE_META: Record<FilterKind, { label: string; desc?: string }> = {
+  All:       { label: 'All' },
+  DeepDive:  { label: 'Deep Dives',  desc: 'Hands on modeling, DAX, Fabric, governance.' },
+  Explainer: { label: 'Explainers',  desc: 'Plain English takeaways for stakeholders.' },
+  Reading:   { label: 'Readings',    desc: 'Notes/highlights from what I read.' },
+}
 
 export const metadata = {
   title: 'Articles | Deep Dives & Explainers',
-  description: 'Technical BI patterns and plain-English explainers.',
+  description: 'Technical BI patterns and Plain English explainers.',
 }
 
-type ArticleKind = keyof typeof WRITING_CONFIG
+type Search = { type?: string } //queryParameter in url
 
-const WRITING_CONFIG: Record<string, {
-  header: string
-  description: string
-  href: string
-  count: number
-}> = {
-  DeepDive: {
-    header: "Deep Dives",
-    description: "Hands-on modeling, DAX, Fabric, and governance for tech readers.",
-    href: "/articles/deep-dives",
-    count: deepDives.length,
-  },
-  Explainer: {
-    header: "Explainers",
-    description: "Plain-English takeaways and outcomes for non-tech readers.",
-    href: "/articles/explainers",
-    count: explainers.length,
-  },
+export default async function ArticlesPage({
+  searchParams,
+}: { searchParams?: Promise<Search> }) {
 
-  Reading: {
-    header: "Readings",
-    description: "Plain-English takeaways and outcomes for non-tech readers.",
-    href: "/readings",
-    count: explainers.length,
-  }
-}
+  const current = ((await searchParams)?.type ?? 'All') as FilterKind
 
-const ArticleItem = ({kind}: {kind: ArticleKind}) => {
-    const { header, description, href, count } = WRITING_CONFIG[kind]
-    return (
-    <li className="rounded-2xl border p-6 hover:bg-black/5">
-        <h2 className="text-2xl font-semibold">{header}</h2>
-        <p className="mt-2 text-neutral-700">{description}</p>
-        <p className="mt-4 text-sm text-neutral-500">{count} {count > 1 ? "articles" : "article"}</p>
-        <Link href={href} className="mt-4 inline-block text-blue-600">
-        Browse {header} &rarr;
-        </Link>
-    </li>
-    )
+  const list = current === 'All' ? articles : articles.filter(a => a.type === current)
 
-}
+  // determines the order
+  const kinds: FilterKind[] = ['All', 'DeepDive', 'Explainer', 'Reading']
 
-export default function ArticlesPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
-      <h1 className="mb-6 text-4xl font-semibold">Articles</h1>
-      <p className="mb-10 text-neutral-600">
-        Two Article Types: <strong>Deep Dives</strong> for practitioners and <strong>Explainers</strong> for stakeholders.
+      <h1 className="mb-3 text-4xl font-semibold">Articles</h1>
+      <p className="mb-6 text-neutral-600">
+        Quick Reads about things I find most interesting
       </p>
 
+      {/* Filter bar */}
+      <div className="mb-8 flex flex-wrap gap-2">
+        {kinds.map(kind => {
+          const active = kind === current
+          const href = kind === 'All' ? '/articles' : `/articles?type=${encodeURIComponent(kind)}`
+          return (
+            <Link
+              key={kind}
+              href={href}
+              className={clsx(
+                'rounded-full border px-3 py-1 text-sm',
+                active ? 'bg-black text-white border-black' : 'hover:bg-black/5'
+              )}
+            >
+              {TYPE_META[kind].label}
+            </Link>
+          )
+        })}
+      </div>
+
+      {/* Description for current selection */}
+      <p className="mb-8 text-sm text-neutral-500">
+        {TYPE_META[current].desc ?? 'All articles'}
+      </p>
+
+      {/* Articles */}
       <ul className="grid gap-6 sm:grid-cols-2">
-        <ArticleItem kind="DeepDive" />
-        <ArticleItem kind="Explainer" />
+        {list.map(a => (
+          <li key={a.slug} className="rounded-2xl border p-6 hover:bg-black/5">
+            <p className="mb-2 text-xs uppercase tracking-wide text-neutral-500">
+              {TYPE_META[a.type].label}
+            </p>
+            <h2 className="text-xl font-semibold">
+              <Link href={`/${a.slug}`} className="hover:underline">
+                {a.title}
+              </Link>
+            </h2>
+            {a.summary ? (
+              <p className="mt-2 text-neutral-700">{a.summary}</p>
+            ) : null}
+            {a.date ? (
+              <p className="mt-4 text-xs text-neutral-500">{a.date}</p>
+            ) : null}
+          </li>
+        ))}
       </ul>
     </main>
   )
