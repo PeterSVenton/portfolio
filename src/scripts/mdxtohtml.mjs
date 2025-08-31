@@ -10,8 +10,7 @@ import { unified } from 'unified'
 import rehypeParse from 'rehype-parse'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
-import { Metric } from '@/app/(mdx-pages)/components/RichText'
-import { Callout } from '@/app/(mdx-pages)/components/Callout'
+import { Metric, Callout } from '@/components/callouts'
 
 
 // super basic function

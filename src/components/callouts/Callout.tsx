@@ -11,7 +11,7 @@ const STYLES: Record<Kind, { icon: LucideIcon; box: string; badge: string }> = {
   tip: {icon: Lightbulb, box: 'bg-violet-50 border-violet-200', badge: 'bg-violet-100 text-violet-800' },
 }
 
-export function Callout({
+export default function Callout({
   kind = 'info',
   title,
   children,
@@ -35,5 +35,3 @@ export function Callout({
     </aside>
   )
 }
-
-export default Callout

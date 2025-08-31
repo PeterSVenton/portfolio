@@ -19,7 +19,7 @@ export type Project = {
 
 export const projects: Project[] = [
   {
-    slug: 'paginated-migration',
+    slug: 'report-migration',
     title: 'Paginated Report Migration',
     summary: 'Led a paginated reporting migration from BOXI to PowerBI. Reverse engineered datasets, validated totals, and standardised layouts/components for faster change control.',
     period: '2024',

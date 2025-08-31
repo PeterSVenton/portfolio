@@ -1,0 +1,48 @@
+<h1>Context</h1>
+<p>In order to showcase my skillset and abilities I thought it'd be best to create a website. I did this using <a href="https://nextjs.org/">Next.js</a>, a <a href="https://react.dev/">React</a> framework. In case you're unfamilar React is a javascript/typescript based UI framework. Its what lets me create cards like the one below.</p>
+<div><span><span>warning</span></span></div><div>I'm a callout</div>
+<p>To create this card I have a component, you can think of a component as a function that returns html.</p>
+<pre><code class="language-tsx">
+type Kind = 'info' | 'success' | 'warning' | 'danger' | 'tip'
+
+const STYLES: Record&#x3C;Kind, { icon: LucideIcon; box: string; badge: string }> = {
+  info: {icon: Info, box: 'bg-sky-50 border-sky-200', badge: 'bg-sky-100 text-sky-800' },
+  success: {icon: CheckCircle2, box: 'bg-emerald-50 border-emerald-200', badge: 'bg-emerald-100 text-emerald-800' },
+  warning: {icon: AlertTriangle, box: 'bg-amber-50 border-amber-200', badge: 'bg-amber-100 text-amber-800' },
+  danger: {icon: ShieldAlert, box: 'bg-rose-50 border-rose-200', badge: 'bg-rose-100 text-rose-800' },
+  tip: {icon: Lightbulb, box: 'bg-violet-50 border-violet-200', badge: 'bg-violet-100 text-violet-800' },
+}
+
+export function Callout({
+  kind = 'info',
+  title,
+  children,
+  className,
+}: {
+  kind?: Kind
+  title?: string
+  children: React.ReactNode
+  className?: string
+}) {
+  const { icon: Icon, box, badge } = STYLES[kind]
+  return (
+    &#x3C;aside role="note" className={`rounded-xl border p-4 ${box} ${className ?? ''}`}>
+      &#x3C;div className="mb-2 inline-flex items-center gap-2">
+        &#x3C;span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${badge}`}>
+          &#x3C;Icon className="h-4 w-4" />
+          &#x3C;span className="capitalize">{title ?? kind}&#x3C;/span>
+        &#x3C;/span>
+      &#x3C;/div>
+      &#x3C;div className="text-sm text-neutral-800">{children}&#x3C;/div>
+    &#x3C;/aside>
+  )
+}
+
+export default Callout
+</code></pre>
+<p>As you can see there's 5 different types of callouts I've defined.</p>
+<pre><code class="language-ts">type Kind = 'info' | 'success' | 'warning' | 'danger' | 'tip'
+</code></pre>
+<p>Additionally I can create the callout like below.</p>
+<pre><code class="language-tsx">&#x3C;Callout kind="warning">I&#x26;apos;m a callout&#x3C;/Callout>
+</code></pre>

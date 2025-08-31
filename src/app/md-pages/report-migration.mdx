@@ -1,17 +1,17 @@
-import Callout from '../components/Callout.tsx'
-import { Metric } from '../components/Richtext.tsx'
+import { Callout, Metric } from "@/components/callouts"
+
 
 export const meta = {
   title: 'Paginated Reporting Modernisation',
   summary:
-    'Migrated legacy BOXI PDFs to Power BI Paginated. I reverse-engineered the data logic, built shared SQL datasets, and created reusable templates validated against finance totals.',
+    'Migrated legacy BOXI PDFs to Power BI Paginated.',
   period: '2024',
   context: 'Company project',
   readMins: 6,
   impact: [
-    'N → M reports via templates (-Y% duplication)',
-    'Finance discrepancies <0.5% after UAT',
-    'Change lead time: weeks → days',
+    '100+ Reports Rebuilt',
+    '5 Critical DW issues fixed',
+    '6x Faster Response Time',
   ],
   // stack: [Tech.PowerBI, Tech.ReportBuilder, Tech.SQL]
 }
