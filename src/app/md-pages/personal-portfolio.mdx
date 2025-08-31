@@ -1,4 +1,4 @@
-import { Callout } from "@/components/callouts"
+import { Callout, Metric } from "@/components/callouts"
 
 # Context
 
@@ -59,4 +59,218 @@ Additionally I can create the callout like below.
 ```tsx
 <Callout kind="warning">I&apos;m a callout</Callout>
 ```
+
+## The End Goal
+
+### Functionality
+
+Ignoring the design for a second there was some core functionality I wanted the website to have, namely:
+
+1. A clear hero with a call to action on the [homepage](https://www.peterventon.co.uk/)
+2. The ability to showcase projects which push the boundaries of a traditional portfolio
+3. A gpt like interactive chat that allows people to ask questions about me with the response linking them to relevant sections
+4. An about me page and a place to publish articles using markdown
+
+### Design
+
+I'm not a design expert but I wanted the website to represent me. I've always found minamalistic design to be beautiful when done correctly, hence you can probably see the website isn't flashy.
+
+## Building the site
+
+Most of the build moved quickly because I’d already sketched the layout in [Figma](https://www.figma.com/). The first real decision was **how to publish articles** without dragging in a full CMS.
+
+I knew I wanted **Markdown/MDX** so content is easy to edit and version with the code. Next.js plays nicely here: I enabled MDX with a couple of **remark/rehype** plugins (including GitHub-flavoured markdown) so I get tables, task lists, and autolinked headings out of the box.
+
+### Adding Markdown Support
+
+The default “one MDX file per route folder” pattern (e.g. `app/foo/page.mdx`) didn’t scale for me because every article would live in a different directory. Instead, I created a single dynamic route—`app/[slug]/page.tsx`—and keep all posts together in a common folder (`src/app/md-pages`). At **build time**, `generateStaticParams()` reads that folder to produce slugs, and the page loads the matching MDX:
+
+```tsx
+// app/[slug]/page.tsx (simplified)
+import { articles } from "@/data/articles"
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+  const { default: Post } = await import(`@/app/md-pages/${slug}.mdx`)
+ 
+  return <Post />
+}
+ 
+export function generateStaticParams() {
+  
+  const slugs = articles.map(a => ({slug: a.slug}))
+  return slugs
+}
+ 
+export const dynamicParams = false
+```
+
+This gives me clean URLs like /report-migration, a single source of truth for content, and no CMS overhead.
+
+### Integrating AWS Knowledge Base
+
+Since I wanted to add a chatbot to the site to showcase my ability to use cutting edge technology I was happy to see knowledge base supported markdown files natively. The issue was I wasn't using `.md` files, I'm using `.mdx` files. These are exactly the same as markdown but it lets me use react components inside my markdown. 
+
+i.e. On my report migration article you'll see the below.
+
+<div className="mt-6 grid gap-3 sm:grid-cols-3">
+  <Metric value="100+" label="Reports Rebuilt" note="Over the course of 1 year" />
+  <Metric value="5" label="Critical DW issues fixed" note="Issues which impacted our P&L" />
+  <Metric value="6x" label="Faster response time" note="Weeks &rarr; Days for complex reports" />
+</div>
+
+See the below snippet for the mdx file's content.
+
+```tsx
+<div className="mt-6 grid gap-3 sm:grid-cols-3">
+  <Metric value="100+" label="Reports Rebuilt" note="Over the course of 1 year" />
+  <Metric value="5" label="Critical DW issues fixed" note="Issues which impacted our P&L" />
+  <Metric value="6x" label="Faster response time" note="Weeks &rarr; Days for complex reports" />
+</div>
+```
+
+This isn't standard markdown and not supported by knowlegde base. I could have dropped the custom components just for knowledge base but I thought they provided important content. Therefore I checked for other supported file types in knolwedge base and saw it supports html. 
+
+This browser is rendering html so all my mdx pages can compile to raw html. In order to do this I prebuild my html content for knowledge base and output it to `bedrock/html`. I came up with the below function to convert my mdx files into html and store them at the output location.
+
+```mjs
+// scripts/mdxtohtml.mjs
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { evaluate } from '@mdx-js/mdx'
+import * as runtime from 'react/jsx-runtime'
+import React from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { unified } from 'unified'
+import rehypeParse from 'rehype-parse'
+import rehypeSanitize from 'rehype-sanitize'
+import rehypeStringify from 'rehype-stringify'
+import { Metric, Callout } from '@/components/callouts'
+
+
+// super basic function
+function stripImports(file) {
+  return file
+    .split(/\n/)
+    .filter(line => !/^\s*import\b/.test(line))
+    .join('\n')
+}
+
+const components = { Metric, Callout }
+
+const MD_FILES_PATH = path.join(process.cwd(), 'src/app/md-pages')
+const OUTPUT_PATH = path.join(process.cwd(), 'bedrock', 'html')
+
+// scripts/mdxtohtml.mjs
+// compiles a mdx page to html, requires the components to be specified
+async function compileOne(filePath) {
+  const mdx = await fs.readFile(filePath, 'utf8')
+  const mdxClean = stripImports(mdx)
+
+  const { default: MDXContent } = await evaluate(mdxClean, {
+    ...runtime,
+    useMDXComponents: () => components,
+    baseUrl: pathToFileURL(filePath)
+  })
+
+  const html = renderToStaticMarkup(React.createElement(MDXContent, { components }))
+
+  const safe = String(
+    await unified()
+      .use(rehypeParse, { fragment: true })
+      .use(rehypeSanitize)
+      .use(rehypeStringify)
+      .process(html)
+  )
+
+  const slug = path.basename(filePath).replace(/\.mdx$/, '')
+  await fs.mkdir(OUTPUT_PATH, { recursive: true })
+  await fs.writeFile(path.join(OUTPUT_PATH, `${slug}.html`), safe, 'utf8')
+}
+
+// this is tied to a npm script in package.json so you specify an argument
+async function run() {
+  const args = process.argv.slice(2)
+  if (args.length === 0){
+    throw new Error("Must specify an argument, to build all run with -a")
+  }
+
+  // checks every file in the md-pages dir
+  if (args.includes('-a')) {
+    const files = (await fs.readdir(MD_FILES_PATH)).filter(f => /\.mdx$/.test(f))
+    for (const f of files) {
+      try { await compileOne(path.join(MD_FILES_PATH, f)); console.log('generated html for', f) }
+      catch (e) { console.error('failed to generate html for', f, '\n', e) }
+    }
+    return
+  }
+
+  // build just the provided slugs/paths
+  for (const arg of args) {
+    const abs = path.resolve(arg)
+    try { await compileOne(abs); console.log('generated html for', abs) }
+    catch (e) { console.error('failed to generate html for', abs, '\n', e) }
+  }
+}
+
+run().catch(err => (console.error(err), process.exit(1)))
+```
+
+Lets simplify this and break my solution down
+
+We have a function to compile a single mdx page named `compileOne()` which takes the path to a mdx file.
+
+This is what the function does
+```mjs
+  // read the file from the filesystem 
+  const mdx = await fs.readFile(filePath, 'utf8')
+  // this just strips the import statements at the top of the mdx file because of how evaluate() works 
+  const mdxClean = stripImports(mdx)
+
+  // evaluate takes the given content and turns it into html, useMDXComponents lets it know about custom components which we store in our components variable
+  const { default: MDXContent } = await evaluate(mdxClean, {
+    ...runtime,
+    useMDXComponents: () => components,
+    baseUrl: pathToFileURL(filePath)
+  })
+  
+  //normally React.createElement is called by BABEL but here we manually instantiate it to get our html tree
+  const html = renderToStaticMarkup(React.createElement(MDXContent, { components }))
+
+
+  // finally get the content
+  const safe = String(
+    await unified()
+    .use(rehypeParse, { fragment: true })
+    .use(rehypeSanitize)
+    .use(rehypeStringify)
+    .process(html)
+    )
+
+  // write the html to a file in the bedrock/html folder
+  const slug = path.basename(filePath).replace(/\.mdx$/, '')
+  await fs.mkdir(OUTPUT_PATH, { recursive: true })
+  await fs.writeFile(path.join(OUTPUT_PATH, `${slug}.html`), safe, 'utf8')
+```
+
+We have a run function that loops over every file in md-pages and calls compile one. I made sure to add this to my npm scripts so I have a quick way to compile all my `.mdx` files to html. In this project's `package.json` you'll see:
+
+```json
+"scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+
+    // custom script we added
+    "kb:build": "tsx -r tsconfig-paths/register src/scripts/mdxtohtml.mjs"
+  }
+```
+
+This output folder is what bedrock builds the knowledge base off of so when a user asks a question it is able to have relevant information to answer the user's question.
 

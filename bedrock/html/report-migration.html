@@ -182,8 +182,8 @@ pbi = pd.read_excel("pbi_report.xlsx", index=["customer_number", "year","month"]
 boxi = pd.read_excel("boxi_report.xlsx", index=["customer_number", "year","month"])
 
 # check these are both empty
-in_boxi_missing_in_pbi = [rec for rec in pbi.index if rec not in boxi.index]
-in_pbi_missing_in_boxi = [rec for rec in boxi.index if rec not in pbi.index]
+in_pbi_missing_in_boxi = [rec for rec in pbi.index if rec not in boxi.index]
+in_boxi_missing_in_pbi = [rec for rec in boxi.index if rec not in pbi.index]
 
 # if both the above lists are empty then shape should match
 assert pbi.shape == boxi.shape

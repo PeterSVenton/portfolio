@@ -26,7 +26,7 @@ export const projects: Project[] = [
     context: 'Company project',
     stack: [Tech.PowerBI, Tech.ReportBuilder, Tech.SQL],
   },
-    {
+  {
     slug: 'personal-portfolio',
     title: 'This Website',
     summary: 'Built this personal portfolio to showcase my skillset',
@@ -34,5 +34,23 @@ export const projects: Project[] = [
     context: 'Personal project',
     stack: [Tech.Typescript, Tech.React, Tech.AWS],
     links: { repo: 'https://github.com/PeterSVenton/portfolio' },
-  }
+  },
+  {
+    slug: 'website-dashboard',
+    title: 'Website Dashboard',
+    summary: 'A powerBI dashboard that shows this website\'s usage and stats. From ingesting the data out of Google Analytics,  creating a databricks job to store the data in Azure Blob Storage and then using the output to build a dashboard in PowerBI.',
+    period: '2025',
+    context: 'Personal project',
+    stack: [Tech.PowerBI, Tech.Python, Tech.DAX, Tech.SQL, Tech.Azure],
+    links: { demo: 'https://github.com/PeterSVenton/portfolio' },
+  },
+  {
+    slug: 'scalable-power-automate',
+    title: 'Power Automate at Scale',
+    summary: 'In order to be informed within the business when high value transactions are happening we needed',
+    period: '2025',
+    context: 'Company project',
+    stack: [Tech.PowerBI, Tech.Python, Tech.DAX, Tech.SQL, Tech.Azure],
+    links: { demo: 'https://github.com/PeterSVenton/portfolio' },
+},
 ]
