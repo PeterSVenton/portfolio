@@ -1,1 +1,71 @@
-# Hello World
+export const meta = {
+  title: 'Power Automate at Scale',
+  summary: 'How a parent child flow design in Power Automate helped managers and senior leaders gain oversight of high-value supplier transactions, replacing manual checks with a scalable and auditable approval process.',
+  period: '2025',
+  context: 'Company project',
+  readMins: 6,
+  impact: [
+    'Reduced manual monitoring of high-value supplier transactions.',
+    'Improved governance and compliance with a consistent approval trail.',
+    'Delivered a scalable, maintainable workflow leveraging Power Automate best practices.'
+  ],
+  // stack: [Tech.PowerAutomate, Tech.Dataverse, Tech.MicrosoftLists, Tech.Teams]
+}
+
+# Power Automate at Scale
+
+## Context
+
+The business wanted a way for managers and senior leaders to have clear oversight of transactions occurring with suppliers, particularly those above a certain threshold. Relying on manual checks created delays and made it difficult to consistently track approvals.
+
+In order to solve the above issue I was asked to create a solution inside of Power Automate. After an outline of what the flow was to do and encompass I implemented a Power Automate solution, leveraging a **parent-child** flow design.
+
+## Why a Parent Child flow Design?
+
+Often times I find flows which are designed in a way that makes them difficult to update,maintain and track. The parent child flow design tackles these problems by:
+1. **Clear Purpose** - Each flow does one thing well. The parent handles orchestration, while the child focuses on processing a single record of data. (Single Responsibility Principle)
+2. **Maintainability** - Updates to the child flow don’t require changes to the parent, reducing risk and effort when business rules evolve.
+3. **Scalability** - The parent can loop through thousands of records while delegating processing to the child. This keeps each flow lighter and helps avoid hitting action limits.
+4. **Error Handling & Resilience** - If the child flow fails on one record, it doesn’t stop the parent from processing the rest. Issues are easier to isolate and resolve.
+5. **Reusability** - The child flow can be reused in other scenarios where the same transaction approval logic is needed, without duplicating steps.
+6. **Asynchronous** - Every child flow instance is independent from one another, allowing multiple records to be processed simultaneously.
+
+While these principles may feel like **common best practices** to those with a programming background, they’re not always obvious in low code tools like Power Automate. By intentionally applying them, business users can build solutions that are not only functional but also **robust, scalable,** and **easy to manage over time.**
+
+{/* maybe add visual */}
+
+## The Solution
+
+### Dataverse (The data source)
+The solution uses **Power Query** to load relevant transaction data into dataverse, and **Power Automate** for the parent and child flow.
+
+#### Power Query
+
+1. **ERP Connection** – Pulls all purchase orders above the threshold that were updated the previous day.
+2. **Microsoft Lists Connection** – Retrieves all records from a list used for tracking processing status.
+3. **Merge & Filter** – Joins the two datasets, returning only records not already in the list. These represent new transactions needing processing.
+
+The result is a Dataverse table refreshed daily. Every record requires processing, ensuring:
+
+- **Auditability** – Every flow run corresponds to a meaningful transaction.
+- **Efficiency** – No redundant network calls or wasted capacity.
+
+
+
+### The Orchestrator (Parent Flow)
+1. Runs after the data is refreshed in dataverse
+2. Iterates through the update records
+3. Calls the child flow for every record
+
+### The Record Processor (Child Flow)
+The child flow uses a CONFIG object to define rules (e.g., approver roles, thresholds).
+
+1. Creates a variable to store the parent flow’s input as a structured object, with built-in error handling (e.g., converting currency values safely).
+2. Creates a record in Microsoft Lists to show the transaction is being processed.
+3. Sends an approval request in Teams to the requester’s manager.
+4. Updates the record in Lists with the decision.
+5. If approved, escalates the approval request to a senior leader (as defined in CONFIG).
+6. Updates the record in Lists with the final decision.
+
+## Outcome
+This automation provided managers and senior leaders with **timely visibility** into high value transactions while ensuring every approval was **tracked, auditable,** and **consistent**. It reduced manual monitoring, standardized the approval process, and demonstrated how Power Automate can scale effectively when designed with maintainability and resilience in mind.

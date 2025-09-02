@@ -235,7 +235,7 @@ boxi = boxi.sort_index(axis=1).sort_index(axis=0)
 diffs = boxi.compare(pbi, result_names=("boxi", "pbi"))
 ```
 
-I moved this into my custom library I used within the company, so I wouldn't need to write this logic manually.
+I moved this into my custom library, so I wouldn't need to write this logic manually.
 
 ```py
 from mylibrary import check_reports
@@ -255,25 +255,26 @@ result.get("column_order_renamings")
 
 ### Scheduling Reports
 
-- Improved Schedules by using **dynamic per recipient** schedules. i.e.
-  - BOXI schedules were defined as an instance. On every schedule instance you could add / alter users receiving the schedule. This mean if a new salesperson started someone would have to go into every sales schedule and add the new salesperson onto the schedule.
-  - In PowerBI I setup a **users** semantic model which refreshes daily. The semantic model had no relationships, every table has the same key `user_id` which contained information for the schedule to be setup. The query for the **dim_salespersons** would look like the below.
-  ```sql
-  SELECT
-  u.user_id AS salesperson_id,
-  u.user_full_name AS salesperson_full_name,
-  u.user_email_address AS salesperson_email_address
-  FROM dim_customer c
-  JOIN dim_user u
-  ON u.dim_user_key = c.dim_salesperson_key
-  WHERE c.is_active_customer = 1
-  ```
+BOXI used to have a major issue. We had so many schedules with no way to easily audit them. In order to improve on this I decided to make use of **dynamic per recipient** schedules.
 
-  - Then a schedule would be setup to go to every row in this table. It would be sent to every record's `salesperson_email_address` and the `salesperson_id` is passed through to the report as a parameter to only show sales of customers for the given salesperson.
+- BOXI schedules were defined as an instance. On every schedule instance you could add / alter users receiving the schedule. This mean if a new salesperson started someone would have to go into every sales schedule and add the new salesperson onto the schedule.
+- In PowerBI I setup a **users** semantic model which refreshes daily. The semantic model had no relationships, every table has the same key `user_id` which contained information for the schedule to be setup. The query for the **dim_salespersons** would look like the below.
+```sql
+SELECT
+u.user_id AS salesperson_id,
+u.user_full_name AS salesperson_full_name,
+u.user_email_address AS salesperson_email_address
+FROM dim_customer c
+JOIN dim_user u
+ON u.dim_user_key = c.dim_salesperson_key
+WHERE c.is_active_customer = 1
+```
 
-  - There are several benefits to this
-    - Easy to know/audit who is receiving schedules
-    - When a new salesperson joins as soon as they are assigned customers in our ERP system they will start receiving reports (no manual intervention needed)
+- Then a schedule would be setup to go to every row in this table. It would be sent to every record's `salesperson_email_address` and the `salesperson_id` is passed through to the report as a parameter to only show sales of customers for the given salesperson.
+
+- There are several benefits to this
+  - Easy to audit who is receiving schedules
+  - When a new salesperson joins as soon as they are assigned customers in our ERP system they will start receiving reports (no manual intervention needed)
 
 - Some reports have 2-3 dynamic schedules and 1 manual schedule instance with users that are unlikely to change, often these were managers who needed the report but not every manager wanted it which prevented the use of dynamic schedules.
 
