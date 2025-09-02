@@ -141,7 +141,7 @@ export default function AboutPage() {
             <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-600">Elsewhere</h2>
             <ul className="mt-3 flex flex-col gap-2 text-sm">
               {SocialOrder.map((label, key) => {
-                const { href, lucideIcon: Icon } = Socials[label]
+                const { href, Icon } = Socials[label]
                 const external = href.startsWith('http')
                 return (
                   <li key={key}>
@@ -153,7 +153,7 @@ export default function AboutPage() {
                       aria-label={label}
                       title={label}
                     >
-                        <Icon />
+                        <Icon size={30} />
                       <span>{label}</span>
                     </a>
                   </li>

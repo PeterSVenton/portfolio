@@ -1,26 +1,23 @@
-import { Mail, Github, Linkedin, type LucideIcon } from 'lucide-react'
-
+import { Mail, type LucideIcon } from 'lucide-react'
+import { CustomIcon, Github, Linkedin } from '@/components/svgs'
 
 export type SocialMeta = {
     href: string,
-    lucideIcon: LucideIcon
+    Icon: LucideIcon | CustomIcon
 }
-
-
-
 
 export const Socials: Record<string, SocialMeta> = {
     Linkedin: {
         href: "https://www.linkedin.com/in/peter-venton-082bb3230/",
-        lucideIcon: Linkedin
+        Icon: Linkedin
     },
         Github: {
         href: "https://github.com/PeterSVenton",
-        lucideIcon: Github
+        Icon: Github
     },
         Email: {
         href: "mailto:peterstevenventon@gmail.com",
-        lucideIcon: Mail
+        Icon: Mail
     }
 }
 
