@@ -4,19 +4,21 @@ export enum Tech {
   SQL = "SQL",
   ReportBuilder = "Report Builder",
   PowerAutomate = "Power Automate",
+  SharepointLists = "SharepointLists",
+  Dataverse = "Dataverse",
 
   Python = "Python",
-  Pandas = "pandas",
+  Pandas = "Pandas",
   NumPy = "NumPy",
-  Matplotlib = "matplotlib",
-  ScikitLearn = "scikit-learn",
+  Matplotlib = "Matplotlib",
+  ScikitLearn = "Scikit-Learn",
   Manim = "Manim",
 
   Typescript = "Typescript",
   React = "React",
 
   Azure = "Azure",
-  AWS = "AWS",
+  AWS = "AWS"
 }
 
 export enum TechCategory {
@@ -69,6 +71,16 @@ export const TECH_META: Record<Tech, TechMeta> = {
     label: "Report Builder",
     url: "https://learn.microsoft.com/en-us/power-bi/paginated-reports/report-builder-power-bi",
     category: TechCategory.Tooling,
+  },
+  [Tech.SharepointLists]: {
+    label: "SP Lists",
+    url: "https://www.microsoft.com/en-gb/microsoft-365/microsoft-lists",
+    category: TechCategory.BI
+  },
+  [Tech.Dataverse]: {
+    label: "Dataverse",
+    url: "https://www.microsoft.com/en-us/power-platform/dataverse",
+    category: TechCategory.Database
   },
   [Tech.PowerAutomate]: {
     label: "Power Automate",
