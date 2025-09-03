@@ -203,7 +203,7 @@ boxi = boxi.sort_index(axis=1).sort_index(axis=0)
 # check if any differences / why they exist
 diffs = boxi.compare(pbi, result_names=("boxi", "pbi"))
 </code></pre>
-<p>I moved this into my custom library I used within the company, so I wouldn't need to write this logic manually.</p>
+<p>I moved this into my custom library, so I wouldn't need to write this logic manually.</p>
 <pre><code class="language-py">from mylibrary import check_reports
 
 pbi = pd.read_excel("pbi_report.xlsx", index=["customer_number", "year","month"])
@@ -218,9 +218,7 @@ result.get("column_differences")
 result.get("column_order_renamings")
 </code></pre>
 <h3>Scheduling Reports</h3>
-<ul>
-<li>
-<p>Improved Schedules by using <strong>dynamic per recipient</strong> schedules. i.e.</p>
+<p>BOXI used to have a major issue. We had so many schedules with no way to easily audit them. In order to improve on this I decided to make use of <strong>dynamic per recipient</strong> schedules.</p>
 <ul>
 <li>BOXI schedules were defined as an instance. On every schedule instance you could add / alter users receiving the schedule. This mean if a new salesperson started someone would have to go into every sales schedule and add the new salesperson onto the schedule.</li>
 <li>In PowerBI I setup a <strong>users</strong> semantic model which refreshes daily. The semantic model had no relationships, every table has the same key <code>user_id</code> which contained information for the schedule to be setup. The query for the <strong>dim_salespersons</strong> would look like the below.</li>
@@ -241,10 +239,8 @@ WHERE c.is_active_customer = 1
 <li>
 <p>There are several benefits to this</p>
 <ul>
-<li>Easy to know/audit who is receiving schedules</li>
+<li>Easy to audit who is receiving schedules</li>
 <li>When a new salesperson joins as soon as they are assigned customers in our ERP system they will start receiving reports (no manual intervention needed)</li>
-</ul>
-</li>
 </ul>
 </li>
 <li>

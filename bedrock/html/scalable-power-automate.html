@@ -1,1 +1,48 @@
-<h1>Hello World</h1>
+<h1>Power Automate at Scale</h1>
+<h2>Context</h2>
+<p>The business wanted a way for managers and senior leaders to have clear oversight of transactions occurring with suppliers, particularly those above a certain threshold. Relying on manual checks created delays and made it difficult to consistently track approvals.</p>
+<p>In order to solve the above issue I was asked to create a solution inside of Power Automate. After an outline of what the flow was to do and encompass I implemented a Power Automate solution, leveraging a <strong>parent-child</strong> flow design.</p>
+<h2>Why a Parent Child flow Design?</h2>
+<p>Often times I find flows which are designed in a way that makes them difficult to update,maintain and track. The parent child flow design tackles these problems by:</p>
+<ol>
+<li><strong>Clear Purpose</strong> - Each flow does one thing well. The parent handles orchestration, while the child focuses on processing a single record of data. (Single Responsibility Principle)</li>
+<li><strong>Maintainability</strong> - Updates to the child flow don’t require changes to the parent, reducing risk and effort when business rules evolve.</li>
+<li><strong>Scalability</strong> - The parent can loop through thousands of records while delegating processing to the child. This keeps each flow lighter and helps avoid hitting action limits.</li>
+<li><strong>Error Handling &#x26; Resilience</strong> - If the child flow fails on one record, it doesn’t stop the parent from processing the rest. Issues are easier to isolate and resolve.</li>
+<li><strong>Reusability</strong> - The child flow can be reused in other scenarios where the same transaction approval logic is needed, without duplicating steps.</li>
+<li><strong>Asynchronous</strong> - Every child flow instance is independent from one another, allowing multiple records to be processed simultaneously.</li>
+</ol>
+<p>While these principles may feel like <strong>common best practices</strong> to those with a programming background, they’re not always obvious in low code tools like Power Automate. By intentionally applying them, business users can build solutions that are not only functional but also <strong>robust, scalable,</strong> and <strong>easy to manage over time.</strong></p>
+
+<h2>The Solution</h2>
+<h3>Dataverse (The data source)</h3>
+<p>The solution uses <strong>Power Query</strong> to load relevant transaction data into dataverse, and <strong>Power Automate</strong> for the parent and child flow.</p>
+<h4>Power Query</h4>
+<ol>
+<li><strong>ERP Connection</strong> – Pulls all purchase orders above the threshold that were updated the previous day.</li>
+<li><strong>Microsoft Lists Connection</strong> – Retrieves all records from a list used for tracking processing status.</li>
+<li><strong>Merge &#x26; Filter</strong> – Joins the two datasets, returning only records not already in the list. These represent new transactions needing processing.</li>
+</ol>
+<p>The result is a Dataverse table refreshed daily. Every record requires processing, ensuring:</p>
+<ul>
+<li><strong>Auditability</strong> – Every flow run corresponds to a meaningful transaction.</li>
+<li><strong>Efficiency</strong> – No redundant network calls or wasted capacity.</li>
+</ul>
+<h3>The Orchestrator (Parent Flow)</h3>
+<ol>
+<li>Runs after the data is refreshed in dataverse</li>
+<li>Iterates through the update records</li>
+<li>Calls the child flow for every record</li>
+</ol>
+<h3>The Record Processor (Child Flow)</h3>
+<p>The child flow uses a CONFIG object to define rules (e.g., approver roles, thresholds).</p>
+<ol>
+<li>Creates a variable to store the parent flow’s input as a structured object, with built-in error handling (e.g., converting currency values safely).</li>
+<li>Creates a record in Microsoft Lists to show the transaction is being processed.</li>
+<li>Sends an approval request in Teams to the requester’s manager.</li>
+<li>Updates the record in Lists with the decision.</li>
+<li>If approved, escalates the approval request to a senior leader (as defined in CONFIG).</li>
+<li>Updates the record in Lists with the final decision.</li>
+</ol>
+<h2>Outcome</h2>
+<p>This automation provided managers and senior leaders with <strong>timely visibility</strong> into high value transactions while ensuring every approval was <strong>tracked, auditable,</strong> and <strong>consistent</strong>. It reduced manual monitoring, standardized the approval process, and demonstrated how Power Automate can scale effectively when designed with maintainability and resilience in mind.</p>

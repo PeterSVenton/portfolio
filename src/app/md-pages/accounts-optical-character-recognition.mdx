@@ -1,1 +1,47 @@
-# Hello World
+# OCR for a Competitive Edge  
+
+## Context  
+Business decisions are often made with **limited visibility**. For example, sales representatives may want to understand the size of the accounts they manage. While manually checking accounts through [Companies House](https://find-and-update.company-information.service.gov.uk/) is possible, it’s time-consuming and inconsistent.  
+
+Instead, imagine a **BI dashboard** that displays this data directly. Where sales reps can sort accounts by turnover, quickly identify their most important customers, and spot companies with high turnover that aren’t trading with us as much as expected.  
+
+To make this possible, we need to automate the pipeline from company filings to structured, queryable data.  
+
+## The Plan (7 Steps)  
+1. Retrieve the [Company Registration Number](https://www.sumup.com/en-gb/invoices/dictionary/company-registration-number/) for every customer in the database and iterate over each record.  
+2. Use the [Companies House API](https://developer.company-information.service.gov.uk/) to fetch the latest filed accounts.  
+3. Store the documents in a filesystem or cloud storage such as [AWS S3](https://aws.amazon.com/s3/).  
+4. Apply [AWS Textract](https://aws.amazon.com/textract/) to extract structured data.  
+5. For turnover fields with a confidence score lower than 97%, escalate to human review with [AWS Augmented AI](https://aws.amazon.com/augmented-ai/).  
+6. Persist structured data in a database such as [AWS Aurora](https://aws.amazon.com/rds/aurora/).  
+7. Connect a BI application to the database and build dashboards/reports.  
+
+## Approach  
+To complete these steps, the solution requires several core functions:  
+
+- **Document Retrieval** – A function that takes a company registration number and saves the latest accounts to the target location.  
+- **Document Processing** – A function that accepts a PDF byte stream and:  
+  - Returns a **dictionary** of extracted account information with confidence scores.  
+  - Saves an annotated PDF copy showing bounding boxes for audit purposes.  
+- **Data Persistence** – A function to write structured account data into the database.  
+
+While in a production environment I’d typically recommend an ETL framework such as [PySpark with Databricks](https://docs.databricks.com/aws/en/pyspark/), this proof of concept uses **pure Python** for storing data in the database.  
+
+## Challenges and Considerations 
+
+Building a good solution requires thinking of Edge Cases and challenges of the above.
+
+- **Data Quality**: Financial documents vary in format, making OCR accuracy critical. Confidence scoring and human review are essential safeguards.  
+- **Scalability**: Large volumes of filings need efficient orchestration to avoid bottlenecks.  
+- **Governance**: Annotated PDFs provide transparency for audit and debugging.   
+
+## Solution
+
+### Document Retrieval
+
+Document retrieval as above will 
+
+### Document Processing
+
+### Data Persistence
+

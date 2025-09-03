@@ -1,7 +1,8 @@
-<h1>Context</h1>
+<h1>Building a Portfolio</h1>
+<h2>Context</h2>
 <p>In order to showcase my skillset and abilities I thought it'd be best to create a website. I did this using <a href="https://nextjs.org/">Next.js</a>, a <a href="https://react.dev/">React</a> framework. In case you're unfamilar React is a javascript/typescript based UI framework. Its what lets me create cards like the one below.</p>
 <div><span><span>warning</span></span></div><div>I'm a callout</div>
-<p>To create this card I have a component, you can think of a component as a function that returns html.</p>
+<p>To create this card I have a component, you can think of a component as a function that returns <a href="https://react.dev/learn/writing-markup-with-jsx">jsx</a>.</p>
 <pre><code class="language-tsx">
 type Kind = 'info' | 'success' | 'warning' | 'danger' | 'tip'
 
@@ -95,7 +96,7 @@ export const dynamicParams = false
   &#x3C;Metric value="6x" label="Faster response time" note="Weeks &#x26;rarr; Days for complex reports" />
 &#x3C;/div>
 </code></pre>
-<p>This isn't standard markdown and not supported by knowlegde base. I could have dropped the custom components just for knowledge base but I thought they provided important content. Therefore I checked for other supported file types in knolwedge base and saw it supports html.</p>
+<p>This isn't standard markdown and not supported by knowlegde base. I could have dropped the custom components just for knowledge base but I thought they provided important content. Therefore I checked for other supported file types in knowledge base and saw it supports html.</p>
 <p>This browser is rendering html so all my mdx pages can compile to raw html. In order to do this I prebuild my html content for knowledge base and output it to <code>bedrock/html</code>. I came up with the below function to convert my mdx files into html and store them at the output location.</p>
 <pre><code class="language-mjs">// scripts/mdxtohtml.mjs
 
