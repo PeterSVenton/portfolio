@@ -39,9 +39,33 @@ Building a good solution requires thinking of Edge Cases and challenges of the a
 
 ### Document Retrieval
 
-Document retrieval as above will 
+To see the full code view the github. To grab documents from the companies house API we have a class which exposes a function `get_and_save_latest_accounts(company_number)`. Given a company registration number it gets the pdf of the latest account and saves it, in this case to S3.
+
+
+
+```py
+class DocumentClient:
+    ...
+    def get_and_save_latest_accounts(self, company_number: str, output_path: str) -> None:
+        '''Get company's latest accounts and save the pdf'''
+        latest_account = self._get_latest_accounts(company_number)
+        file_name = latest_account['date']
+        document_number = self._get_document_number_from_url(latest_account['links']['document_metadata'])
+        self._save_document(document_number, file_name, output_path)
+
+```
 
 ### Document Processing
 
+Document Processing is broken into 2 steps.
+1. Pass the document location to textract so it can process the document
+2. Parse the returned data into custom classes
+
+
 ### Data Persistence
+
+
+## Drawbacks
+
+Due to the laws around accounts submitted the information may not be current. The deadline for example for companies to submit their accounts as of the time of writing (2025) is August. Meaning the latest data you might have until then is 2024 data which is close to a year out of date.
 
