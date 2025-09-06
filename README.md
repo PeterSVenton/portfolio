@@ -1,7 +1,7 @@
 # Personal Portfolio
 
 ## Todo
-- [ ] Add custom 404 page
+- [x] Add custom 404 page
 - [x] Store mdx files in centralised folder and transpile to html for AWS knowledge base
 - [ ] Setup AWS knowledge base with agent/gpt like screen
 - [ ] Write 5-10 work articles
