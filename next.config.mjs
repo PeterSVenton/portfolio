@@ -2,6 +2,7 @@ import remarkGfm from 'remark-gfm'
 import createMDX from '@next/mdx'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
+import rehypeExternalLinks from "rehype-external-links";
 import remarkMath from 'remark-math'
 
  
@@ -16,7 +17,14 @@ const withMDX = createMDX({
   // Add markdown plugins here, as desired
   options: {
     remarkPlugins: [remarkGfm, remarkMath],
-    rehypePlugins: [rehypeHighlight, rehypeKatex],
+    rehypePlugins: [
+      rehypeHighlight,
+      rehypeKatex,
+      [rehypeExternalLinks, {
+        target: "_blank",
+        rel: ["noopener", "noreferrer", "nofollow"]
+      }]
+    ],
   },
 })
  

@@ -15,3 +15,5 @@
 - [ ] Website GA4 Dashboard
 - [ ] OCR for companies house
 - [ ] Audio Analysis
+
+- [ ] Add some screenshots / images to all articles
