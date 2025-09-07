@@ -25,6 +25,12 @@ export default function ExperiencePage() {
       </header>
       {/* Border left is the timeline, the blips are done in the map  */}
       <ol className="relative border-l pl-6">
+        <div className="absolute left-[-1px] -bottom-12 block h-12 rounded-full border-l" />
+
+        <span className="absolute -left-3 -bottom-12 inline-flex items-center justify-center h-6 w-6 rounded-full border bg-white">
+            S
+        </span>
+
         {experience.map((item, i) => (
           <li key={i} className="mb-10 ms-6">
             {/* timeline dot */}
