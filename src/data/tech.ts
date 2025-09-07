@@ -18,7 +18,9 @@ export enum Tech {
   React = "React",
 
   Azure = "Azure",
-  AWS = "AWS"
+  AWS = "AWS",
+  BigQuery = "BigQuery",
+  GA4 = "GA4"
 }
 
 export enum TechCategory {
@@ -141,4 +143,15 @@ export const TECH_META: Record<Tech, TechMeta> = {
     url: "https://aws.amazon.com/",
     category: TechCategory.Cloud,
   },
+  [Tech.BigQuery]: {
+    label: "BigQuery",
+    url: "https://cloud.google.com/bigquery?hl=en",
+    category: TechCategory.Cloud,
+  },
+  [Tech.GA4]: {
+    label: "Google Analytics",
+    url: "https://developers.google.com/analytics",
+    category: TechCategory.Tooling,
+  },
+
 };
