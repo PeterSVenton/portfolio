@@ -7,9 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-
     "kb:build": "tsx -r tsconfig-paths/register src/scripts/mdxtohtml.mjs"
-    
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.0",
@@ -25,7 +23,9 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "rehype-highlight": "^7.0.2",
-    "rehype-parse": "^9.0.1"
+    "rehype-katex": "^7.0.1",
+    "rehype-parse": "^9.0.1",
+    "remark-math": "^6.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

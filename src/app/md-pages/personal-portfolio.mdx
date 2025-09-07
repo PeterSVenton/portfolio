@@ -85,7 +85,7 @@ I knew I wanted **Markdown/MDX** so content is easy to edit and version with the
 
 ### Adding Markdown Support
 
-The default “one MDX file per route folder” pattern (e.g. `app/foo/page.mdx`) didn’t scale for me because every article would live in a different directory. Instead, I created a single dynamic route—`app/[slug]/page.tsx`—and keep all posts together in a common folder (`src/app/md-pages`). At **build time**, `generateStaticParams()` reads that folder to produce slugs, and the page loads the matching MDX:
+The default “one MDX file per route folder” pattern (e.g. `app/foo/page.mdx`) didn’t scale for me because every article would live in a different directory. Instead, I created a single dynamic route `app/[slug]/page.tsx` and keep all posts together in a common folder (`src/app/md-pages`). At **build time**, `generateStaticParams()` reads that folder to produce slugs, and the page loads the matching MDX:
 
 ```tsx
 // app/[slug]/page.tsx (simplified)

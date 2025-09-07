@@ -28,7 +28,7 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
       <header>
         <h1 className="text-4xl font-semibold">Projects</h1>
         <p className="mt-2 text-neutral-700">
-          Outcome-first case studies. Each shows the problem, approach, and measurable impact.
+          Outcome first case studies. Each shows the problem, approach, and measurable impact.
         </p>
 
         {/* Filter options */}
