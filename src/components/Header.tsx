@@ -46,7 +46,8 @@ export default function Header() {
       style={{ willChange: "transform" }}
     >
       <nav className="ml-6 flex h-14 items-center gap-4 px-4">
-        <Link href="/" className="font-semibold">
+        {/* mobile menu when open has a z index of 40 */}
+        <Link href="/" className="font-semibold z-50">
           Peter Venton
         </Link>
 
