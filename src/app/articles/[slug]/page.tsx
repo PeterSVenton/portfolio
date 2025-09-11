@@ -1,5 +1,5 @@
 import { articles } from "@/data/articles"
-import type { Metadata, ResolvingMetadata } from 'next'
+import type { Metadata } from 'next'
 
 
 export default async function Page({
@@ -22,11 +22,7 @@ export function generateStaticParams() {
 
 // metadata generated dynamically based on the document
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const article = articles.find((p) => p.slug === slug)
 
