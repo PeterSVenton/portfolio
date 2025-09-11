@@ -17,7 +17,7 @@ export const experience: Experience[] = [
   {
     role: 'Business Analyst',
     company: 'Tri-Star Packaging',
-    companyUrl: 'https://www.tri-star.co.uk/',
+    companyUrl: 'https://www.linkedin.com/company/tristarpackaging/posts/?feedView=all',
     location: 'Essex, UK',
     start: '2023-12',
     end: 'Present',
