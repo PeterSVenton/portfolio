@@ -28,7 +28,7 @@ const HeroMain = () => {
 export default function Hero() {
   return (
     // header is 3.5rem tall so -3.5rem adjusts it so this is h-screen
-    <div className='h-screen w-full lg:mt-[-3.5rem] flex items-center justify-center p-8 relative'> 
+    <div className='h-screen w-full mt-[-3.5rem] flex items-center justify-center p-8 relative'> 
       <div className='flex flex-col lg:flex-row items-center justify-center lg:gap-30'>
             <HeroMain/>
             <div className="relative hidden lg:block lg:size-96 aspect-square ">
