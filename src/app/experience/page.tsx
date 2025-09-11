@@ -13,7 +13,7 @@ export default function ExperiencePage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
       <header className="mb-8 flex items-center gap-3">
-        <h1 className="text-4xl font-semibold">Experience</h1>
+        <h1 className="text-3xl sm:text-4xl font-semibold">Experience</h1>
         <TrackLink
           target="_blank"
           href="/PeterVentonCV.pdf"
@@ -32,12 +32,12 @@ export default function ExperiencePage() {
         </span>
 
         {experience.map((item, i) => (
-          <li key={i} className="mb-10 ms-6">
+          <li key={i} className="mb-10">
             {/* timeline dot */}
             <span className="absolute -start-3 block h-6 w-6 rounded-full border bg-white" />
 
             <div>
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-base sm:text-xl font-semibold">
                 {item.role}{' '}
                 <span className="text-neutral-500">
                   @
@@ -58,7 +58,7 @@ export default function ExperiencePage() {
                 </span>
               </h2>
 
-              <span className="text-sm text-neutral-500">
+              <span className="text-xs sm:text-sm text-neutral-500">
                 <time dateTime={iso(item.start)}>{fmt(item.start)}</time>
                 {' — '}
                 <time dateTime={item.end !== 'Present' ? iso(item.end) : undefined}>
@@ -71,7 +71,7 @@ export default function ExperiencePage() {
             {item.summary ? <p className="mt-2">{item.summary}</p> : null}
 
             {item.bullets?.length ? (
-              <ul className="mt-3 list-disc ps-5 text-neutral-700">
+              <ul className="mt-2 sm:mt-3 text-sm sm:text-base list-disc ps-5 text-neutral-700">
                 {item.bullets.map((bullet, i) => (
                   <li key={i}>{bullet}</li>
                 ))}
@@ -87,7 +87,7 @@ export default function ExperiencePage() {
                   href={item.caseStudyUrl}
                   gaEvent="timeline_case_click"
                   gaParams={{ role: item.role, company: item.company }}
-                  className="text-blue-600"
+                  className="text-blue-600 text-sm sm:text-base"
                 >
                   Related case study &rarr;
                 </TrackLink>
