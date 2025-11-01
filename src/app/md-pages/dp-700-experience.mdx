@@ -1,0 +1,69 @@
+# DP-700: Microsoft Certified: Fabric Data Engineer Associate
+
+I recently took the [DP-700: Microsoft Certified: Fabric Data Engineer Associate](https://learn.microsoft.com/en-us/credentials/certifications/fabric-data-engineer-associate/?practice-assessment-type=certification) exam and am now [certified](https://learn.microsoft.com/api/credentials/share/en-us/PeterVenton-7649/A850B1056A30CBE8?sharingId=98B7CA95EDAFB390).
+
+---
+
+## Why I pursued it
+
+With the introduction of **Microsoft Fabric**, the data engineering landscape within the Microsoft ecosystem has evolved significantly. The DP-700 certification validates skills in **designing, building, and optimizing data pipelines and analytics solutions** that leverage Fabric’s unified architecture across Data Factory, DataFlows, Realtime Analytics, Pyspark, and Lakehouses.
+
+For me, this certification was a natural next step after working extensively with **Power BI, Python, and SQL**. It offered a way to formalize my experience and stay ahead as the platform continues to unify analytics under Fabric.
+
+---
+
+## What the exam covers
+
+The DP-700 exam focuses on several key areas:
+
+- **Ingesting and transforming data** using Dataflows Gen2, Pipelines, and Lakehouses  
+- **Designing and implementing data models** for performance and scalability  
+- **Managing and optimizing data storage** in OneLake  
+- **Enabling analytics and business intelligence** with Direct Lake and Power BI integration  
+- **Monitoring, securing, and governing Fabric environments**
+
+Overall, it’s about understanding how all the Fabric components fit together to support an end-to-end data strategy.
+
+---
+
+## Study resources I used
+
+- [Microsoft Learn Path for DP-700](https://learn.microsoft.com/en-us/training/courses/dp-700t00)  
+- [Microsoft Fabric documentation](https://learn.microsoft.com/en-us/fabric/)  
+- [Practice Exam from Microsoft](https://learn.microsoft.com/en-us/credentials/certifications/fabric-data-engineer-associate/practice/assessment?assessment-type=practice&assessmentId=1704375541&practice-assessment-type=certification)  
+- Aleksi Partanen's 11 hour [DP-700 Exam Full Course](https://www.youtube.com/watch?v=jTDSP7KBavI)
+- Will's 6 hour [DP-700 Exam Full Course](https://www.youtube.com/watch?v=KiB4eAeFRsw)
+
+Outside of this I gained hands on experience by leveraging the free 60 day Fabric trial from Microsoft to have access to play with Fabric and solidify my understanding of all the content.
+
+Overall I studied for 4 weeks before taking the exam, scoring a 883/1000.
+
+---
+
+## My experience taking the exam
+
+The exam experience was relatively smooth **40–50 questions** covering a balance of conceptual design, and technical questions with a case study to evaluate a scenario based task.
+
+For the conceptual design tasks I found it helpful to visualize Fabric as an ecosystem: knowing when to use Dataflows, Pipelines, and Lakehouses in combination was key.
+
+For the techical questions its about knowing syntax, functions and method names. The easiest way to develop the skills needed in this section is to utilize a hands on approach, especially if you've never done any PySpark. the 3 topics covered are:
+1. **PySpark / Fabric Notebooks**
+    - If you're familiar with Python/Pandas then this is mainly about learning PySpark syntax.
+    - There were a few questions about the Fabric Specific Package NoteBookUtils, which asked how to orchestrate other notebooks from within a notebook (This is a question about NoteBookUtils `runMultiple()` method and the syntax of the dictionary to setup the Directed Acyclic Graph (DAG))
+2. **SQL**
+    - How to GRANT permission to objects in the database
+    - Setting up RLS in SQL by creating a security predicate and binding it to a table
+    - The different dynamic data masking (DDM) functions fabric supports and when to make use of them
+3. **KQL**
+    - How to create Materialized Views and what their use case is
+    - How to create functions and their difference to SQL stored procedures
+---
+
+## What’s next
+
+With Fabric now at the core of Microsoft’s analytics offering, this certification feels like a great foundation for future roles focused on **data architecture, governance, and analytics enablement**.  
+I plan to continue exploring Fabric’s end-to-end capabilities, particularly **Real-Time Intelligence** and **Data Activator**. The next certification I'm chasing is the DP600: 
+
+---
+
+*Published November 2025*

@@ -70,7 +70,7 @@ export default async function ArticlesPage({
               {TYPE_META[a.type].label}
             </p>
             <h2 className="text-xl font-semibold">
-              <Link href={`/${a.slug}`} className="hover:underline">
+              <Link href={`/articles/${a.slug}`} className="hover:underline">
                 {a.title}
               </Link>
             </h2>

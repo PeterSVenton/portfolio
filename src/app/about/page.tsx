@@ -40,6 +40,11 @@ const BULLETS: Record<string, Bullet[]> = {
     ["Delivery & handover.", "Dashboards + docs, with measurable outcomes."]
     ],
 
+    certifications: [
+      ["Mensa", "- Member of British Mensa"],
+      ["DP700", "- Microsoft Certified: Fabric Data Engineer Associate"]
+    ],
+
     highlights: [
         "Reduced duplicate metrics by ~30% via centralized measures & conventions.",
         "Migrated legacy reports to Power BI (paginated + interactive) for compliance.",
@@ -181,6 +186,7 @@ export default function AboutPage() {
         {/* Main content (carded sections) */}
         <div className="space-y-8">
           <SectionCardBulleted title={"Principles"} bullets={BULLETS["principles"]} />
+          <SectionCardBulleted title={"Certifications"} bullets={BULLETS["certifications"]} />
 
           <SectionCardBulleted title={"How I Work"} bullets={BULLETS["howIWork"]} />
 

@@ -63,7 +63,7 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
             <p className="mt-1 text-xs text-neutral-500">{p.period} · {p.context}</p>
 
             {p.stack?.length && (
-              <div className="mt-2">
+              <div className="mt-auto">
                 <TechChip items={p.stack} />
               </div>
             )}
