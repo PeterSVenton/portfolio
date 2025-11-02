@@ -10,10 +10,9 @@ import { unified } from 'unified'
 import rehypeParse from 'rehype-parse'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
+import matter from 'gray-matter'
 import { Metric, Callout } from '@/components/callouts'
 
-
-// super basic function
 function stripImports(file) {
   return file
     .split(/\n/)
@@ -26,10 +25,10 @@ const components = { Metric, Callout }
 const MD_FILES_PATH = path.join(process.cwd(), 'src/app/md-pages')
 const OUTPUT_PATH = path.join(process.cwd(), 'bedrock', 'html')
 
-// compiles a md/mdx page to html, requires the components to be specified
 async function compileOne(filePath) {
-  const mdx = await fs.readFile(filePath, 'utf8')
-  const mdxClean = stripImports(mdx)
+  const raw = await fs.readFile(filePath, 'utf8')
+  const { data: metadata, content } = matter(raw)
+  const mdxClean = stripImports(content)
 
   const { default: MDXContent } = await evaluate(mdxClean, {
     ...runtime,
@@ -37,9 +36,7 @@ async function compileOne(filePath) {
     baseUrl: pathToFileURL(filePath)
   })
 
-
   const html = renderToStaticMarkup(React.createElement(MDXContent, { components }))
-  // console.log('\n--- RAW HTML ---\n', html)
 
   const safe = String(
     await unified()
@@ -49,39 +46,50 @@ async function compileOne(filePath) {
       .process(html)
   )
 
-  // console.log('\n--- SAFE HTML ---\n', safe)
-
   const slug = path.basename(filePath).replace(/\.mdx$/, '')
   await fs.mkdir(OUTPUT_PATH, { recursive: true })
   await fs.writeFile(path.join(OUTPUT_PATH, `${slug}.html`), safe, 'utf8')
+
+  console.log(metadata)
+
+  await fs.writeFile(
+    path.join(OUTPUT_PATH, `${slug}.html.metadata.json`),
+    JSON.stringify(metadata, null, 2),
+    'utf-8'
+  )
 }
 
-// checks every file in the md-pages dir
 async function run() {
   const args = process.argv.slice(2)
-  if (args.length === 0){
-    throw new Error("Must specify an argument, to build all run with -a")
+  if (args.length === 0) {
+    throw new Error('Must specify an argument, to build all run with -a')
   }
 
   if (args.includes('-a')) {
-    const directories = (await fs.readdir(MD_FILES_PATH))
-    for (const d of directories){
-      path = path.join([MD_FILES_PATH, d])
-      const files = (await fs.readdir(path)).filter(f => /\.mdx$/.test(f))
-
+    const directories = await fs.readdir(MD_FILES_PATH)
+    for (const d of directories) {
+      const mdxPath = path.join(MD_FILES_PATH, d)
+      const files = (await fs.readdir(mdxPath)).filter(f => /\.mdx$/.test(f))
       for (const f of files) {
-        try { await compileOne(path.join(path, f)); console.log('generated html for', f) }
-        catch (e) { console.error('failed to generate html for', f, '\n', e) }
+        try {
+          await compileOne(path.join(mdxPath, f))
+          console.log('generated html for', f)
+        } catch (e) {
+          console.error('failed to generate html for', f, '\n', e)
+        }
       }
     }
     return
   }
 
-  // build just the provided slugs/paths
   for (const arg of args) {
     const abs = path.resolve(arg)
-    try { await compileOne(abs); console.log('generated html for', abs) }
-    catch (e) { console.error('failed to generate html for', abs, '\n', e) }
+    try {
+      await compileOne(abs)
+      console.log('generated html for', abs)
+    } catch (e) {
+      console.error('failed to generate html for', abs, '\n', e)
+    }
   }
 }
 
