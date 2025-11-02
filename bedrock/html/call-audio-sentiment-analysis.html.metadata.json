@@ -1,0 +1,13 @@
+{
+  "metadataAttributes": {
+    "active": false,
+    "title": "Creating BI ready Audio Data",
+    "description": "Transforming raw audio into structured sentiment data to enable deeper call analytics and uncover patterns hidden in conversation.",
+    "date": "01/11/2025",
+    "projectType": "Personal Project",
+    "stack": [
+      "Python",
+      "AWS"
+    ]
+  }
+}

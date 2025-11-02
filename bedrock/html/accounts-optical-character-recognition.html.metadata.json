@@ -1,0 +1,13 @@
+{
+  "metadataAttributes": {
+    "active": false,
+    "title": "OCR for a Competitive Edge",
+    "description": "Exploring how optical character recognition can extract key insights from company accounts, turning static documents into actionable data.",
+    "date": "01/11/2025",
+    "projectType": "Personal Project",
+    "stack": [
+      "Python",
+      "AWS"
+    ]
+  }
+}

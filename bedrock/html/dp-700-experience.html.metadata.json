@@ -1,0 +1,13 @@
+{
+  "metadataAttributes": {
+    "active": true,
+    "title": "The DP-700 Exam Experience",
+    "description": "My Experience on taking the DP-700 Microsoft Certified Data Engineer Associate Exam.",
+    "date": "30/10/2025",
+    "readMins": 5,
+    "type": "Explainer",
+    "tags": [
+      "Fabric"
+    ]
+  }
+}

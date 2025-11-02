@@ -255,6 +255,19 @@ result.get("column_differences")
 result.get("column_order_renamings")
 ```
 
+```mermaid
+graph LR
+  A["BOXI Output (Excel)"]
+  B["PBI Output (Excel)"]
+  C["check_reports() Python Function"]
+
+  A --> C
+  B --> C
+  C --> D["Compare DataFrames"]
+  D --> E["Highlight Differences (shape, columns, totals)"]
+  E --> F["Validation Passed/Failed Output"]
+```
+
 ### Scheduling Reports
 
 BOXI used to have a major issue. We had so many schedules with no way to easily audit them. In order to improve on this I decided to make use of **dynamic per recipient** schedules.
@@ -282,5 +295,23 @@ WHERE c.is_active_customer = 1
 
 - For customer facing schedules I made sure to copy the BOXI schedule exactly including the email body. We communicated with customers we're changing our internal tooling but they'd receive the same schedules.
 
----
+```mermaid
+sequenceDiagram
+  autonumber
+  participant User as Business User
+  participant PowerBI as Power BI Service
+  participant Dataset as Shared Dataset
+  participant RDL as Paginated Report
+  participant Schedule as Dynamic Schedule
+  participant Email as Email Delivery
+
+  User->>PowerBI: Request "Sales Report"
+  PowerBI->>Dataset: Query data (with parameters)
+  Dataset-->>RDL: Return filtered dataset
+  RDL-->>Schedule: Generate PDF/Excel output
+  Schedule-->>Email: Deliver report to recipients
+```
+
+## Conclusion
+
 **Result:** The estate moved from ad-hoc, duplicated logic in BOXI to a governed, reusable Paginated layer on Power BI. Change requests now happen in **days**, not weeks. We can have confidence in reports because the SQL is written within the business from users who understand the business instead of an external team which don't understand the business well enough to build a solution for it (i.e. The BOXI universes).

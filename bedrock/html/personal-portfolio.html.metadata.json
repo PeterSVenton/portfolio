@@ -1,0 +1,17 @@
+{
+  "metadataAttributes": {
+    "active": true,
+    "type": "Project",
+    "title": "My Personal Website (This Website)",
+    "description": "Built this personal portfolio to showcase my skillset",
+    "date": "01/08/2025",
+    "projectType": "Personal project",
+    "readMins": 6,
+    "stack": [
+      "Typescript",
+      "React",
+      "AWS"
+    ],
+    "links_repo": "https://github.com/PeterSVenton/portfolio"
+  }
+}

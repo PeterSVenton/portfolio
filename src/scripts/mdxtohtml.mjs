@@ -10,6 +10,7 @@ import { unified } from 'unified'
 import rehypeParse from 'rehype-parse'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
+import rehypeMermaid from 'rehype-mermaid'
 import matter from 'gray-matter'
 import { Metric, Callout } from '@/components/callouts'
 
@@ -18,6 +19,18 @@ function stripImports(file) {
     .split(/\n/)
     .filter(line => !/^\s*import\b/.test(line))
     .join('\n')
+}
+
+function flattenObject(obj, parentKey = '', result = {}) {
+  for (const [key, value] of Object.entries(obj)) {
+    const newKey = parentKey ? `${parentKey}_${key}` : key;
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      flattenObject(value, newKey, result);
+    } else {
+      result[newKey] = value;
+    }
+  }
+  return result;
 }
 
 const components = { Metric, Callout }
@@ -42,6 +55,7 @@ async function compileOne(filePath) {
     await unified()
       .use(rehypeParse, { fragment: true })
       .use(rehypeSanitize)
+      .use(rehypeMermaid)
       .use(rehypeStringify)
       .process(html)
   )
@@ -50,13 +64,13 @@ async function compileOne(filePath) {
   await fs.mkdir(OUTPUT_PATH, { recursive: true })
   await fs.writeFile(path.join(OUTPUT_PATH, `${slug}.html`), safe, 'utf8')
 
-  console.log(metadata)
+  const bedrock_metadata = {"metadataAttributes": flattenObject(metadata)}
 
-  // await fs.writeFile(
-  //   path.join(OUTPUT_PATH, `${slug}.html.metadata.json`),
-  //   JSON.stringify(metadata, null, 2),
-  //   'utf-8'
-  // )
+  await fs.writeFile(
+    path.join(OUTPUT_PATH, `${slug}.html.metadata.json`),
+    JSON.stringify(bedrock_metadata, null, 2),
+    'utf-8'
+  )
 }
 
 async function run() {
@@ -73,9 +87,9 @@ async function run() {
       for (const f of files) {
         try {
           await compileOne(path.join(mdxPath, f))
-          console.log('generated html for', f)
+          console.log('generated html and metadata for', f)
         } catch (e) {
-          console.error('failed to generate html for', f, '\n', e)
+          console.error('failed to generate html/metadata for', f, '\n', e)
         }
       }
     }

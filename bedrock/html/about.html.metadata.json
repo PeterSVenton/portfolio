@@ -1,5 +1,17 @@
 {
-    "metadataAttributes": {
-        "name": "Information about Peter"
-    }
+  "metadataAttributes": {
+    "active": true,
+    "title": "About Me",
+    "summary": "I build data ecosystems — not just dashboards.",
+    "author": "Peter Venton",
+    "slug": "about-me",
+    "keywords": [
+      "data modelling",
+      "Power BI",
+      "semantic layer",
+      "AWS",
+      "Azure",
+      "analytics engineering"
+    ]
+  }
 }
