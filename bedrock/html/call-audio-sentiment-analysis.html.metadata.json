@@ -1,5 +1,6 @@
 {
   "metadataAttributes": {
+    "url": "https://www.peterventon.co.uk/work/call-audio-sentiment-analysis",
     "active": false,
     "title": "Creating BI ready Audio Data",
     "description": "Transforming raw audio into structured sentiment data to enable deeper call analytics and uncover patterns hidden in conversation.",

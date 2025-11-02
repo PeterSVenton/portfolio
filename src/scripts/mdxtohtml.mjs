@@ -33,6 +33,20 @@ function flattenObject(obj, parentKey = '', result = {}) {
   return result;
 }
 
+function getPageUrl(filePath) {
+  const base = "https://www.peterventon.co.uk"
+  const parts = filePath.split(path.sep);
+  
+  const mdPagesDir = parts[parts.length - 2];
+  const slug = parts[parts.length - 1].replace(/\.mdx$/, '');
+
+  
+  if (mdPagesDir.toLowerCase() === "projects") {
+    return `${base}/work/${slug}`;
+  }
+
+  return `${base}/${mdPagesDir}/${slug}`;
+}
 const components = { Metric, Callout }
 
 const MD_FILES_PATH = path.join(process.cwd(), 'src/app/md-pages')
@@ -64,7 +78,15 @@ async function compileOne(filePath) {
   await fs.mkdir(OUTPUT_PATH, { recursive: true })
   await fs.writeFile(path.join(OUTPUT_PATH, `${slug}.html`), safe, 'utf8')
 
-  const bedrock_metadata = {"metadataAttributes": flattenObject(metadata)}
+
+  const bedrock_metadata = {
+    "metadataAttributes": {
+      "url": getPageUrl(filePath),
+      ...flattenObject(metadata)
+    }
+  }
+
+  console.log(bedrock_metadata)
 
   await fs.writeFile(
     path.join(OUTPUT_PATH, `${slug}.html.metadata.json`),
