@@ -101,7 +101,7 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
               {p.projectType}
             </p>
             <h2 className="text-xl font-semibold">
-              {p.active ? <Link href={`/articles/${p.slug}`} className="hover:underline">{p.title}</Link> : <p>{p.title}</p>}
+              {p.active ? <Link href={`/work/${p.slug}`} className="hover:underline">{p.title}</Link> : <p>{p.title}</p>}
             </h2>
             {p.description ? (
               <p className="mt-2 text-neutral-700">{p.description}</p>
