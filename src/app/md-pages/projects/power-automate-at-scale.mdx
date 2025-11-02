@@ -51,9 +51,22 @@ The result is a Dataverse table refreshed daily. Every record requires processin
 
 
 ### The Orchestrator (Parent Flow)
+The role of the orchestrator is to get the rows from Dataverse, then iterate over every record and send it to the child flow as a http payload
 1. Runs after the data is refreshed in dataverse
 2. Iterates through the update records
 3. Calls the child flow for every record
+
+```mermaid
+graph TD
+  A["Trigger: Dataverse refresh complete"]
+  A --> B["Parent Flow: Query new transactions"]
+  B --> C{Any records?}
+  C -- No --> Z["End"]
+  C -- Yes --> D["Loop: For each transaction"]
+  D -- Request --> E["Call Child Flow with CONFIG + payload"]
+  E -- 202 Response --> D
+  D -- Loop Exhausted --> Z
+```
 
 ### The Record Processor (Child Flow)
 The child flow uses a CONFIG object to define rules (e.g., approver roles, thresholds).
@@ -64,6 +77,31 @@ The child flow uses a CONFIG object to define rules (e.g., approver roles, thres
 4. Updates the record in Lists with the decision.
 5. If approved, escalates the approval request to a senior leader (as defined in CONFIG).
 6. Updates the record in Lists with the final decision.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant DV as Dataverse
+  participant P as Parent Flow
+  participant C as Child Flow
+  participant L as Microsoft Lists
+  participant T as Teams Approvals
+
+  DV->>P: Get yesterday's records
+  P->>C: Invoke with {transactionId, CONFIG}
+  C->>L: Create "Processing" entry
+  C->>T: Send approval to Manager
+  T-->>C: Manager decision
+  C->>L: Update with Manager decision
+
+  alt Approved but threshold exceeded
+    C->>T: Escalate to Senior
+    T-->>C: Senior decision
+    C->>L: Update with final decision
+  end
+
+  C-->>P: {status, decision, timestamps}
+```
 
 ## Outcome
 This automation provided managers and senior leaders with **timely visibility** into high value transactions while ensuring every approval was **tracked, auditable,** and **consistent**. It reduced manual monitoring, standardized the approval process, and demonstrated how Power Automate can scale effectively when designed with maintainability and resilience in mind.
