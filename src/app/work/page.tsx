@@ -55,7 +55,7 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
       </header>
 
       {/* Cards */}
-      <ul className="mt-8 grid gap-6 sm:grid-cols-2">
+      {/* <ul className="mt-8 grid gap-6 sm:grid-cols-2">
         {byDate.map((p) => (
           <li key={p.slug} className="rounded-2xl border p-5 hover:bg-black/5">
             <h2 className="text-lg font-semibold">
@@ -90,6 +90,46 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
                 )}
             </div>
             }
+          </li>
+        ))}
+      </ul> */}
+
+      <ul className="mt-8 grid gap-6 sm:grid-cols-2">
+        {byDate.map(a => (
+          <li key={a.slug} className="rounded-2xl border p-6 hover:bg-black/5">
+            <p className="mb-2 text-xs uppercase tracking-wide text-neutral-500">
+              {a.context}
+            </p>
+            <h2 className="text-xl font-semibold">
+              {a.active ? <Link href={`/articles/${a.slug}`} className="hover:underline">{a.title}</Link> : <p>{a.title}</p>}
+            </h2>
+            {a.description ? (
+              <p className="mt-2 text-neutral-700">{a.description}</p>
+            ) : null}
+
+            {a.stack?.length && (
+              <div className="mt-auto">
+                <TechChip items={a.stack} />
+              </div>
+            )}
+
+            {a.active && 
+              <div className="mt-4 flex flex-wrap gap-3 text-sm">
+                <TrackLink href={`/work/${a.slug}`} className="text-blue-600">Read case study →</TrackLink>
+                {a.links?.deepDive && <TrackLink href={a.links.deepDive} className="text-blue-600">Deep Dive</TrackLink>}
+                {a.links?.explainer && <TrackLink href={a.links.explainer} className="text-blue-600">Explainer</TrackLink>}
+                {a.links?.repo && (
+                  <a href={a.links.repo} target="_blank" rel="noopener noreferrer" className="text-blue-600">GitHub</a>
+                )}
+                {a.links?.demo && (
+                  <a href={a.links.demo} target="_blank" rel="noopener noreferrer" className="text-blue-600">Demo</a>
+                )}
+            </div>
+            }
+
+            {a.date ? (
+              <p className="mt-4 text-xs text-neutral-500">{a.date}</p>
+            ) : null}
           </li>
         ))}
       </ul>

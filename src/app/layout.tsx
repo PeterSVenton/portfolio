@@ -35,7 +35,7 @@ export default function RootLayout({
           data-cmp-host="d.delivery.consentmanager.net"
           data-cmp-cdn="cdn.consentmanager.net"
           data-cmp-codesrc="16"
-          ></Script>
+          />
         <GoogleAnalytics gaId="G-P6XTRVZP4H" />
       </head>
 
