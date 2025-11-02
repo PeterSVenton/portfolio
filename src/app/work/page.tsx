@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import TrackLink from '@/components/TrackLink'
 import TechChip from '@/components/TechChip'
-import { projects } from '@/data/projects'
+import { getMdPagesMetadata } from '../helpers/getMdPagesMetadata'
 
 
 export const metadata: Metadata = {
@@ -13,14 +13,16 @@ export const metadata: Metadata = {
 type Search = { type?: string } //queryParameter in url
 
 export default async function WorkPage({ searchParams }: { searchParams: Promise<Search> }) {
-  const type = (await searchParams).type as undefined | 'Company project' | 'Personal project'
-  const filtered = type ? projects.filter(p => p.context === type) : projects
+  const projects = await getMdPagesMetadata("projects")
+  const type = (await searchParams).type as undefined | 'Company project' | 'Personal project' | 'In Development'
+  const filtered = type === 'In Development' ? projects.filter(p=> !p.active) : type ? projects.filter(p => (p.context === type) && (p.active)) : projects.filter(p => p.active)
   const byDate = filtered //TODO: sort by dates for relevancy
 
   const types: Array<{ label: string; value?: Search['type'] }> = [
     { label: 'All' },
     { label: 'Company', value: 'Company project' },
-    { label: 'Personal', value: 'Personal project' }
+    { label: 'Personal', value: 'Personal project' },
+    { label: 'In Development', value: 'In Development'}
 ]
 
   return (
@@ -57,9 +59,10 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
         {byDate.map((p) => (
           <li key={p.slug} className="rounded-2xl border p-5 hover:bg-black/5">
             <h2 className="text-lg font-semibold">
-              <TrackLink href={`/work/${p.slug}`}>{p.title}</TrackLink>
+              {p.active ? <TrackLink href={`/work/${p.slug}`}>{p.title}</TrackLink> : <p>{p.title}</p>}
+              
             </h2>
-            <p className="mt-1 text-sm text-neutral-700">{p.summary}</p>
+            <p className="mt-1 text-sm text-neutral-700">{p.description}</p>
             <p className="mt-1 text-xs text-neutral-500">{p.period} · {p.context}</p>
 
             {p.stack?.length && (
@@ -70,28 +73,30 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
 
             {p.impact?.length && (
               <ul className="mt-3 list-disc ps-5 text-sm text-neutral-700">
-                {p.impact.map((b, i) => <li key={i}>{b}</li>)}
+                {p.impact.map((b: string, i: string) => <li key={i}>{b}</li>)}
               </ul>
             )}
 
-            <div className="mt-4 flex flex-wrap gap-3 text-sm">
-              <TrackLink href={`/work/${p.slug}`} className="text-blue-600">Read case study →</TrackLink>
-              {p.links?.deepDive && <TrackLink href={p.links.deepDive} className="text-blue-600">Deep Dive</TrackLink>}
-              {p.links?.explainer && <TrackLink href={p.links.explainer} className="text-blue-600">Explainer</TrackLink>}
-              {p.links?.repo && (
-                <a href={p.links.repo} target="_blank" rel="noopener noreferrer" className="text-blue-600">GitHub</a>
-              )}
-              {p.links?.demo && (
-                <a href={p.links.demo} target="_blank" rel="noopener noreferrer" className="text-blue-600">Demo</a>
-              )}
+            {p.active && 
+              <div className="mt-4 flex flex-wrap gap-3 text-sm">
+                <TrackLink href={`/work/${p.slug}`} className="text-blue-600">Read case study →</TrackLink>
+                {p.links?.deepDive && <TrackLink href={p.links.deepDive} className="text-blue-600">Deep Dive</TrackLink>}
+                {p.links?.explainer && <TrackLink href={p.links.explainer} className="text-blue-600">Explainer</TrackLink>}
+                {p.links?.repo && (
+                  <a href={p.links.repo} target="_blank" rel="noopener noreferrer" className="text-blue-600">GitHub</a>
+                )}
+                {p.links?.demo && (
+                  <a href={p.links.demo} target="_blank" rel="noopener noreferrer" className="text-blue-600">Demo</a>
+                )}
             </div>
+            }
           </li>
         ))}
       </ul>
 
       {/* Empty */}
       {byDate.length === 0 && (
-        <p className="mt-10 text-neutral-600">No projects yet for this filter.</p>
+        <p className="mt-10 text-neutral-600">{type === "In Development" ? "I'm not currently working on writing anything" : "It appears there's no projects yet for this filter."}</p>
       )}
     </main>
   )

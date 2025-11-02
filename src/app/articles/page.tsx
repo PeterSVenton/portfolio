@@ -1,15 +1,17 @@
 import Link from 'next/link'
-import { articles, type Article } from '@/data/articles'
 import clsx from 'clsx'
+import { getMdPagesMetadata } from '@/app/helpers/getMdPagesMetadata'
+import { type Article } from '@/data/articles'
 
 type ArticleType = Article['type']                
-type FilterKind = 'All' | ArticleType            
+type FilterKind = 'All' | 'InDevelopment' | ArticleType            
 
 const TYPE_META: Record<FilterKind, { label: string; desc?: string }> = {
   All:       { label: 'All' },
   DeepDive:  { label: 'Deep Dives',  desc: 'Hands on modeling, DAX, Fabric, governance.' },
   Explainer: { label: 'Explainers',  desc: 'Plain English takeaways for stakeholders.' },
   Reading:   { label: 'Readings',    desc: 'Notes/highlights from what I read.' },
+  InDevelopment: { label: 'In Development', desc: 'Articles I\'m currently working on' }
 }
 
 export const metadata = {
@@ -23,12 +25,14 @@ export default async function ArticlesPage({
   searchParams,
 }: { searchParams?: Promise<Search> }) {
 
+  const articles = await getMdPagesMetadata("articles")
+  
   const current = ((await searchParams)?.type ?? 'All') as FilterKind
 
-  const list = current === 'All' ? articles : articles.filter(a => a.type === current)
+  const list = current === 'InDevelopment' ? articles.filter(a => !a.active) : current === "All" ? articles.filter(a => a.active) : articles.filter(a => (a.type === current) && (a.active))
 
   // determines the order
-  const kinds: FilterKind[] = ['All', 'DeepDive', 'Explainer', 'Reading']
+  const kinds: FilterKind[] = ['All', 'DeepDive', 'Explainer', 'Reading', 'InDevelopment']
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
@@ -67,15 +71,13 @@ export default async function ArticlesPage({
         {list.map(a => (
           <li key={a.slug} className="rounded-2xl border p-6 hover:bg-black/5">
             <p className="mb-2 text-xs uppercase tracking-wide text-neutral-500">
-              {TYPE_META[a.type].label}
+              {TYPE_META[a.type as FilterKind].label}
             </p>
             <h2 className="text-xl font-semibold">
-              <Link href={`/articles/${a.slug}`} className="hover:underline">
-                {a.title}
-              </Link>
+              {a.active ? <Link href={`/articles/${a.slug}`} className="hover:underline">{a.title}</Link> : <p>{a.title}</p>}
             </h2>
-            {a.summary ? (
-              <p className="mt-2 text-neutral-700">{a.summary}</p>
+            {a.description ? (
+              <p className="mt-2 text-neutral-700">{a.description}</p>
             ) : null}
             {a.date ? (
               <p className="mt-4 text-xs text-neutral-500">{a.date}</p>

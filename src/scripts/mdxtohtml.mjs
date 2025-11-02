@@ -21,9 +21,6 @@ function stripImports(file) {
     .join('\n')
 }
 
-
-
-
 const components = { Metric, Callout }
 
 const MD_FILES_PATH = path.join(process.cwd(), 'src/app/md-pages')
@@ -67,10 +64,15 @@ async function run() {
   }
 
   if (args.includes('-a')) {
-    const files = (await fs.readdir(MD_FILES_PATH)).filter(f => /\.mdx$/.test(f))
-    for (const f of files) {
-      try { await compileOne(path.join(MD_FILES_PATH, f)); console.log('generated html for', f) }
-      catch (e) { console.error('failed to generate html for', f, '\n', e) }
+    const directories = (await fs.readdir(MD_FILES_PATH))
+    for (const d of directories){
+      path = path.join([MD_FILES_PATH, d])
+      const files = (await fs.readdir(path)).filter(f => /\.mdx$/.test(f))
+
+      for (const f of files) {
+        try { await compileOne(path.join(path, f)); console.log('generated html for', f) }
+        catch (e) { console.error('failed to generate html for', f, '\n', e) }
+      }
     }
     return
   }

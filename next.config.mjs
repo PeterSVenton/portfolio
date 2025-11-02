@@ -4,6 +4,8 @@ import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
 import rehypeExternalLinks from "rehype-external-links";
 import remarkMath from 'remark-math'
+import remarkFrontmatter from 'remark-frontmatter'
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 
  
 /** @type {import('next').NextConfig} */
@@ -16,7 +18,7 @@ const nextConfig = {
 const withMDX = createMDX({
   // Add markdown plugins here, as desired
   options: {
-    remarkPlugins: [remarkGfm, remarkMath],
+    remarkPlugins: [remarkGfm, remarkMath, remarkFrontmatter, [remarkMdxFrontmatter, { name: 'metadata' }]],
     rehypePlugins: [
       rehypeHighlight,
       rehypeKatex,
