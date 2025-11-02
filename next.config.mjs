@@ -6,7 +6,7 @@ import rehypeExternalLinks from "rehype-external-links";
 import remarkMath from 'remark-math'
 import remarkFrontmatter from 'remark-frontmatter'
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
-import rehypeMermaidjs from 'rehype-mermaidjs';
+import rehypeMermaid from 'rehype-mermaid';
  
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -31,7 +31,7 @@ const withMDX = createMDX({
         target: "_blank",
         rel: ["noopener", "noreferrer", "nofollow"]
       }],
-      rehypeMermaidjs
+      rehypeMermaid
     ],
   },
 })
