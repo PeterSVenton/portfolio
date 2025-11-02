@@ -62,7 +62,7 @@ export default Callout
 <p>Most of the build moved quickly because I’d already sketched the layout in <a href="https://www.figma.com/">Figma</a>. The first real decision was <strong>how to publish articles</strong> without dragging in a full CMS.</p>
 <p>I knew I wanted <strong>Markdown/MDX</strong> so content is easy to edit and version with the code. Next.js plays nicely here: I enabled MDX with a couple of <strong>remark/rehype</strong> plugins (including GitHub-flavoured markdown) so I get tables, task lists, and autolinked headings out of the box.</p>
 <h3>Adding Markdown Support</h3>
-<p>The default “one MDX file per route folder” pattern (e.g. <code>app/foo/page.mdx</code>) didn’t scale for me because every article would live in a different directory. Instead, I created a single dynamic route—<code>app/[slug]/page.tsx</code>—and keep all posts together in a common folder (<code>src/app/md-pages</code>). At <strong>build time</strong>, <code>generateStaticParams()</code> reads that folder to produce slugs, and the page loads the matching MDX:</p>
+<p>The default “one MDX file per route folder” pattern (e.g. <code>app/foo/page.mdx</code>) didn’t scale for me because every article would live in a different directory. Instead, I created a single dynamic route <code>app/[slug]/page.tsx</code> and keep all posts together in a common folder (<code>src/app/md-pages</code>). At <strong>build time</strong>, <code>generateStaticParams()</code> reads that folder to produce slugs, and the page loads the matching MDX:</p>
 <pre><code class="language-tsx">// app/[slug]/page.tsx (simplified)
 
 export default async function Page({

@@ -52,11 +52,11 @@ async function compileOne(filePath) {
 
   console.log(metadata)
 
-  await fs.writeFile(
-    path.join(OUTPUT_PATH, `${slug}.html.metadata.json`),
-    JSON.stringify(metadata, null, 2),
-    'utf-8'
-  )
+  // await fs.writeFile(
+  //   path.join(OUTPUT_PATH, `${slug}.html.metadata.json`),
+  //   JSON.stringify(metadata, null, 2),
+  //   'utf-8'
+  // )
 }
 
 async function run() {

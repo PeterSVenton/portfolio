@@ -1,1 +1,59 @@
-<h1>Hello World</h1>
+<h1>OCR for a Competitive Edge</h1>
+<h2>Context</h2>
+<p>Business decisions are often made with <strong>limited visibility</strong>. For example, sales representatives may want to understand the size of the accounts they manage. While manually checking accounts through <a href="https://find-and-update.company-information.service.gov.uk/">Companies House</a> is possible, it’s time-consuming and inconsistent.</p>
+<p>Instead, imagine a <strong>BI dashboard</strong> that displays this data directly. Where sales reps can sort accounts by turnover, quickly identify their most important customers, and spot companies with high turnover that aren’t trading with us as much as expected.</p>
+<p>To make this possible, we need to automate the pipeline from company filings to structured, queryable data.</p>
+<h2>The Plan (7 Steps)</h2>
+<ol>
+<li>Retrieve the <a href="https://www.sumup.com/en-gb/invoices/dictionary/company-registration-number/">Company Registration Number</a> for every customer in the database and iterate over each record.</li>
+<li>Use the <a href="https://developer.company-information.service.gov.uk/">Companies House API</a> to fetch the latest filed accounts.</li>
+<li>Store the documents in a filesystem or cloud storage such as <a href="https://aws.amazon.com/s3/">AWS S3</a>.</li>
+<li>Apply <a href="https://aws.amazon.com/textract/">AWS Textract</a> to extract structured data.</li>
+<li>For turnover fields with a confidence score lower than 97%, escalate to human review with <a href="https://aws.amazon.com/augmented-ai/">AWS Augmented AI</a>.</li>
+<li>Persist structured data in a database such as <a href="https://aws.amazon.com/rds/aurora/">AWS Aurora</a>.</li>
+<li>Connect a BI application to the database and build dashboards/reports.</li>
+</ol>
+<h2>Approach</h2>
+<p>To complete these steps, the solution requires several core functions:</p>
+<ul>
+<li><strong>Document Retrieval</strong> – A function that takes a company registration number and saves the latest accounts to the target location.</li>
+<li><strong>Document Processing</strong> – A function that accepts a PDF byte stream and:
+<ul>
+<li>Returns a <strong>dictionary</strong> of extracted account information with confidence scores.</li>
+<li>Saves an annotated PDF copy showing bounding boxes for audit purposes.</li>
+</ul>
+</li>
+<li><strong>Data Persistence</strong> – A function to write structured account data into the database.</li>
+</ul>
+<p>While in a production environment I’d typically recommend an ETL framework such as <a href="https://docs.databricks.com/aws/en/pyspark/">PySpark with Databricks</a>, this proof of concept uses <strong>pure Python</strong> for storing data in the database.</p>
+<h2>Challenges and Considerations</h2>
+<p>Building a good solution requires thinking of Edge Cases and challenges of the above.</p>
+<ul>
+<li><strong>Data Quality</strong>: Financial documents vary in format, making OCR accuracy critical. Confidence scoring and human review are essential safeguards.</li>
+<li><strong>Scalability</strong>: Large volumes of filings need efficient orchestration to avoid bottlenecks.</li>
+<li><strong>Governance</strong>: Annotated PDFs provide transparency for audit and debugging.</li>
+</ul>
+<h2>Solution</h2>
+<h3>Document Retrieval</h3>
+<p>To see the full code view the github. To grab documents from the companies house API we have a class which exposes a method <code>get_and_save_latest_accounts(company_number)</code>. Given a company registration number it gets the pdf of the latest account and saves it, in this case to S3.</p>
+<pre><code class="language-py">class DocumentClient:
+    ...
+    def get_and_save_latest_accounts(self, company_number: str, output_path: str) -> None:
+        '''Get company's latest accounts and save the pdf'''
+        latest_account = self._get_latest_accounts(company_number)
+        file_name = latest_account['date']
+        document_number = self._get_document_number_from_url(latest_account['links']['document_metadata'])
+        self._save_document(document_number, file_name, output_path)
+
+</code></pre>
+<h3>Document Processing</h3>
+<p>Document Processing is broken into 3 steps.</p>
+<ol>
+<li>Pass the document location to textract so it can process the document</li>
+<li>Parse the returned data into custom classes</li>
+<li>Create a new pdf showing the predictions</li>
+</ol>
+<h3>Saving the Data</h3>
+<p>Saving the extracted data is quite simplified</p>
+<h2>Drawbacks</h2>
+<p>Due to the laws around accounts submitted the information may not be current. The deadline for example for companies to submit their accounts as of the time of writing (2025) is August. Meaning the latest data you might have until then is 2024 data which is close to a year out of date.</p>
