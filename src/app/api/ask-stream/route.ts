@@ -35,11 +35,9 @@ export async function POST(req: NextRequest) {
 
   const resp = await client.send(cmd);
 
-  const answer =
-    resp.output?.text ??
-    (typeof (resp as any).output?.message === "string"
-      ? (resp as any).output?.message
-      : "");
+  console.log("RESP", resp)
+
+  const answer = resp.output?.text
 
   // citations has a lot of info so filter it, its okay to have internal documents will put a header that warns the user the document they're on is solely for knowledge base
   const citations =

@@ -122,7 +122,7 @@ export default function ChatAboutPeter() {
         sources: data.citations,
       }
       setMessages((m) => [...m, botMsg])
-    } catch (err) {
+    } catch {
       setMessages((m) => [
         ...m,
         { role: 'ai', text: 'Network error - please try again.' },
