@@ -6,7 +6,7 @@ import rehypeExternalLinks from "rehype-external-links";
 import remarkMath from 'remark-math'
 import remarkFrontmatter from 'remark-frontmatter'
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
-
+import rehypeMermaid from 'rehype-mermaid';
  
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -18,14 +18,20 @@ const nextConfig = {
 const withMDX = createMDX({
   // Add markdown plugins here, as desired
   options: {
-    remarkPlugins: [remarkGfm, remarkMath, remarkFrontmatter, [remarkMdxFrontmatter, { name: 'metadata' }]],
+    remarkPlugins: [
+      remarkGfm,
+      remarkMath,
+      remarkFrontmatter,
+      [remarkMdxFrontmatter, { name: 'metadata' }]
+    ],
     rehypePlugins: [
       rehypeHighlight,
       rehypeKatex,
       [rehypeExternalLinks, {
         target: "_blank",
         rel: ["noopener", "noreferrer", "nofollow"]
-      }]
+      }],
+      rehypeMermaid
     ],
   },
 })

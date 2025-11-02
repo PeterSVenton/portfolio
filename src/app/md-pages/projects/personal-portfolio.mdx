@@ -4,7 +4,7 @@ type: Project
 title: My Personal Website (This Website)
 description: Built this personal portfolio to showcase my skillset
 date: 01/08/2025
-context: Personal project
+projectType: Personal project
 readMins: 6
 stack:
   - Typescript
@@ -88,6 +88,7 @@ Ignoring the design for a second there was some core functionality I wanted the 
 2. The ability to showcase projects which push the boundaries of a traditional portfolio
 3. A gpt like interactive chat that allows people to ask questions about me with the response linking them to relevant sections
 4. An about me page and a place to publish articles using markdown
+5. The ability to add mermaid charts into markdown files and precompile the svgs as a static asset
 
 ### Design
 
@@ -127,7 +128,15 @@ export function generateStaticParams() {
 export const dynamicParams = false
 ```
 
-This gives me clean URLs like /report-migration, a single source of truth for content, and no CMS overhead.
+This gives me clean URLs like /report-migration, a single source of truth for content, and no CMS overhead. The full architecture can be seen below:
+
+```mermaid
+graph LR
+  A["/app/[slug]/page.tsx"] --> B["Dynamic Import of MDX File"]
+  B --> C["React Component Rendered"]
+  C --> D["Static Page HTML"]
+  D --> E["Deployed on Vercel / S3"]
+```
 
 ### Integrating AWS Knowledge Base
 
@@ -290,5 +299,241 @@ We have a run function that loops over every file in md-pages and calls compile 
   }
 ```
 
-This output folder is what bedrock builds the knowledge base off of so when a user asks a question it is able to have relevant information to answer the user's question.
+This output folder is what bedrock builds the knowledge base off of so when a user asks a question it is able to have relevant information to answer the user's question. The full design can be seen in the graph below:
+```mermaid
+graph LR
+  A["MDX Files (.mdx)"] --> B["MDX → HTML Compiler (mdxtohtml.mjs)"]
+  B --> C["Output Folder: bedrock/html"]
+  C --> D["S3 Bucket (Knowledge Base Store)"]
+  D --> E["AWS Bedrock Knowledge Base"]
+  E --> F["Chat Interface (User Queries)"]
+```
 
+### Setting Up Google Analytics 4
+
+I want my website to have some unique projects to showcase my diverse skillset. I was thinking about how I can show my PowerBI abilities without creating a generic report from an existing dataset. After a few days of thinking I decided I would build a report based on this website's GA4 (Google Analytics Data).
+
+This would showcase a few of my skills:
+1. The ability to use different technologies
+2. The ability to create and orchestrate an ETL process to clean data
+3. The ability to tell a data story with PowerBI
+
+#### Setting up a Cookie Banner to use GA4
+I'm going to be honest, I've never used google analytics before so the task wasn't super trivial. Luckily for widely used technical tools there's always extremely good documentation.
+
+The first thing I learned is I was going to need a cookie banner, since I would be tracking anonymized user data. I decided to use [ConsentManager](https://www.consentmanager.net/en/) to power the cookie banner. I read the [docs](https://help.consentmanager.net/books/cmp/page/implementation-using-server-side-rendering) on how to implement the cookie banner using server side rendering and had the banner up and running within minutes. If you look at this project's github in the App's root layout you'll see:
+
+```tsx
+ <html lang="en">
+      <head>
+        {/* consentmanager script https://help.consentmanager.net/books/cmp/page/implementation-using-server-side-rendering */}
+        <Script
+          strategy="afterInteractive"
+          type="text/javascript"
+          data-cmp-ab="1"
+          src="https://cdn.consentmanager.net/delivery/autoblocking/780fd577d2e68.js"
+          data-cmp-host="d.delivery.consentmanager.net"
+          data-cmp-cdn="cdn.consentmanager.net"
+          data-cmp-codesrc="16"
+          />
+        <GoogleAnalytics gaId="G-P6XTRVZP4H" />
+      </head>
+
+      <body className={`${rubik.className} antialiased`}>
+        <Header />
+        {children}
+      </body>
+    </html>
+```
+
+The `<Script />` is handling the cookie banner. You can also see the `GoogleAnalytics` tag which is keeping track of key user events I want to show on my PowerBI report.
+
+#### Tracking Events using GA4
+Once the cookie banner was in place and GA4 started collecting anonymized session data, the next step was to decide which events to track. GA4 automatically tracks common interactions (page views, scrolls, outbound clicks, etc.), but I wanted more granular insight into how users explore the site, particularly on how they engage with my projects and articles.
+
+I started by defining a simple event schema aligned with my content structure:
+
+| Event Name | Trigger | Parameters |
+| --- | --- | --- |
+| View Project | When a user opens a project article | `{ project_name, category }` |
+| view_article | When a user opens a blog/article | `{ article_title, topic }` |
+| cta_click | When a user clicks an external or contact link | `{ cta_type, destination }` |
+| scroll_depth | When a user scrolls beyond 75% of a page | `{ page_path }`|
+
+These events let me answer questions like:
+
+- Which projects attract the most attention?
+- Do visitors read technical articles in full, or bounce early?
+- Which calls to action convert best?
+
+To implement this, I used Google’s gtag.js API directly within my Next.js components. For example, every time a project page renders, it logs a `view_project` event:
+
+```tsx
+'use client'
+import { useEffect } from 'react'
+import { sendGAEvent } from '@next/third-parties/google'
+
+export default function ProjectView({ projectName, category }) {
+  useEffect(() => {
+    sendGAEvent('event', 'view_project', {
+      project_name: projectName,
+      category,
+    })
+  }, [projectName, category])
+  return
+}
+```
+
+Because the cookie banner controls consent, this script only fires once the user has accepted analytics cookies, keeping tracking compliant and transparent.
+
+Over time, these events accumulate into a small but meaningful dataset in BigQuery, where GA4 automatically exports its underlying tables. I then transform this into a star schema for powerBI. That dataset becomes the foundation for a Power BI report showing real world usage metrics for my own site, everything from traffic by page to conversion paths and engagement time.
+
+By designing and instrumenting GA4 myself, I demonstrated the entire workflow I’d use in a production analytics environment:
+
+- **Instrumentation** (deciding what to measure)
+- **Collection** (ensuring compliant data capture)
+- **Transformation** (cleaning and reshaping GA data for Power BI)
+- **Visualization** (telling the story of user engagement)
+
+It’s a small project, but it neatly ties together my skills in **web development**, **data engineering**, and **business intelligence**, all using the real data from [peterventon.co.uk](https://www.peterventon.co.uk/).
+
+If this was confusing the graph below shows the full process flow:
+```mermaid
+graph LR
+  A["Website Events (gtag.js)"] --> B["GA4 Property"]
+  B --> C["BigQuery Export"]
+  C --> D["Data Transformation"]
+  D --> E["Power BI Report"]
+```
+
+#### A/B Testing
+Once I had event tracking and analytics flowing into GA4, the next logical step was to explore A/B testing. This would let me use data to validate design and content decisions rather than relying purely on intuition.
+
+Because this is a personal site, I wanted a lightweight, privacy-friendly approach that still demonstrates **the core principles of experimentation** you’d use in a professional environment.
+
+##### Designing the Experiment
+The hypothesis was simple:
+
+> Would changing how I present my featured projects increase the percentage of users who click through to view them?
+
+I created two versions of the homepage hero section:
+- **Variant A**: Clean, text-focused layout with short project descriptions.
+- **Variant B**: Card-style layout with preview images and a stronger “View Project” call-to-action.
+
+Rather than deploy two separate builds, I controlled the variant logic directly in Next.js using a client side flag persisted in localStorage (so users consistently see the same version):
+
+```tsx
+'use client'
+import { useEffect, useState } from 'react'
+import { sendGAEvent } from '@next/third-parties/google'
+
+export default function HomeExperiment({ childrenA, childrenB }) {
+  const [variant, setVariant] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Randomly assign A or B if not already assigned
+    let v = localStorage.getItem('ab_variant')
+    if (!v) {
+      v = Math.random() < 0.5 ? 'A' : 'B'
+      localStorage.setItem('ab_variant', v)
+    }
+    setVariant(v)
+    sendGAEvent('event', 'ab_variant_assigned', { variant: v })
+  }, [])
+
+  if (!variant) return null
+  return variant === 'A' ? childrenA : childrenB
+}
+```
+
+This setup makes it trivial to wrap experimental content:
+
+```tsx
+<HomeExperiment
+  childrenA={<ProjectsTextOnly />}
+  childrenB={<ProjectsWithImages />}
+/>
+```
+
+GA4’s custom events and exploration reports make it easy to compare outcomes.
+Each time a user clicks into a project, the event payload includes the assigned variant:
+
+```tsx
+sendGAEvent('event', 'view_project', {
+  project_name,
+  variant: localStorage.getItem('ab_variant'),
+})
+```
+
+From there, I can visualize the performance of Variant A vs B in Power BI, calculating metrics like:
+
+- **Click through rate (CTR)** per variant
+- **Average engagement time**
+- **Bounce rate** and **scroll depth**
+
+Even though this is a small scale personal experiment, it mirrors how professional analytics teams run iterative design tests:
+- **Form** a measurable hypothesis.
+- **Randomly assign users** to variants.
+- **Collect event level data** through GA4.
+- **Analyze statistically** which variant drives better engagement.
+
+Overall this allowed me to turn my own portfolio site into a living experiment. See the full A/B implementation below.
+
+```mermaid
+graph LR
+  A["User Visit"] --> B{"Random Assignment"}
+  B --> C["Variant A (Text Layout)"]
+  B --> D["Variant B (Image Layout)"]
+  C --> E["GA4 Event: view_project {variant:A}"]
+  D --> F["GA4 Event: view_project {variant:B}"]
+  E --> G["BigQuery / Power BI Analysis"]
+  F --> G
+```
+
+### Conclusion
+
+Building this portfolio turned out to be much more than a frontend exercise, it became a full stack project that touches almost every part of modern analytics engineering. From rendering custom MDX components to wiring up GA4, BigQuery, and Power BI, each step reinforced how data, design, and engineering intersect.
+
+**Lessons Learned**
+
+- **MDX → HTML conversion** wasn’t as simple as expected. Evaluating MDX at build time and sanitizing it safely for Bedrock ingestion required careful control over imports and React rendering. It taught me a lot about how static generation pipelines and content sanitization actually work under the hood.
+
+- **GA4’s event schema** is flexible but verbose. Flattening nested JSON structures into queryable BigQuery tables highlighted the importance of clear event design and consistent parameter naming.
+
+- **Cookies and consent** in a server side rendered Next.js app took trial and error. Integrating ConsentManager cleanly into the app’s `<head>` logic gave me a practical understanding of privacy first analytics.
+
+- **Minimalism ≠ simplicity.** Designing a clean interface that still surfaces interactivity, analytics, and experimental UX took more iteration than expected, but it pushed me to think deliberately about user experience and performance.
+
+The full design of the website (at least as of the time of publishing this article) can be seen below:
+
+```mermaid
+graph TD
+    %% Frontend
+    A["Website"] --> A1["Next.js Runtime (App Router)"]
+    A1 --> A2["Dynamic Routes / MDX Rendering"]
+    A1 --> A3["ConsentManager / Cookie Banner"]
+    A --> B["Google Analytics 4 (GA4)"]
+    A --> E["Chat Interface"]
+
+    %% Content layer
+    I["Markdown (.mdx) Pages"] --> I1["Frontmatter Metadata"]
+    I1 --> A2
+    I1 --> J["Runtime Script (mdx → html compiler)"]
+    K --> H["S3 HTML Files & Metadata"]
+    H --> G["AWS Bedrock Knowledge Base"]
+
+    %% Backend / AI flow
+    E --> F["Backend API / Bedrock Runtime"]
+    F --> F2["Prompt Template / System Instruction"]
+    F2 --> G
+    F --> F1["IAM Role / AWS Credentials"]
+
+    %% Analytics flow
+    B --> C["BigQuery"]
+    C --> D["Power BI Report"]
+
+    %% DevOps / feedback loop
+    J --> K["CI/CD Pipeline"]
+```
+
+In the end, the project became a live demonstration of the same principles I apply professionally. **Structured data**, **measurable outcomes**, and **continuous improvement**. Every page, every event, and even every variant test is part of a feedback loop that makes both the codebase and the insights stronger over time.
