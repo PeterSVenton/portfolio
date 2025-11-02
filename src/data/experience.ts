@@ -26,8 +26,7 @@ export const experience: Experience[] = [
       'Established a reusable semantic model (Sales/Stock/Finance) with centralized measures.',
       'Reduced duplicate metrics and sped up new requests with calc groups & conventions.',
     ],
-    stack: [Tech.PowerBI, Tech.DAX, Tech.SQL, Tech.ReportBuilder, Tech.PowerAutomate, Tech.Python],
-    caseStudyUrl: '/work/clean-models',
+    stack: [Tech.PowerBI, Tech.DAX, Tech.SQL, Tech.ReportBuilder, Tech.PowerAutomate, Tech.Python]
   },
   {
     role: 'Risk Analyst Intern',

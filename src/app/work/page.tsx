@@ -54,46 +54,6 @@ export default async function WorkPage({ searchParams }: { searchParams: Promise
         </ul>
       </header>
 
-      {/* Cards */}
-      {/* <ul className="mt-8 grid gap-6 sm:grid-cols-2">
-        {byDate.map((p) => (
-          <li key={p.slug} className="rounded-2xl border p-5 hover:bg-black/5">
-            <h2 className="text-lg font-semibold">
-              {p.active ? <TrackLink href={`/work/${p.slug}`}>{p.title}</TrackLink> : <p>{p.title}</p>}
-              
-            </h2>
-            <p className="mt-1 text-sm text-neutral-700">{p.description}</p>
-            <p className="mt-1 text-xs text-neutral-500">{p.period} · {p.context}</p>
-
-            {p.stack?.length && (
-              <div className="mt-auto">
-                <TechChip items={p.stack} />
-              </div>
-            )}
-
-            {p.impact?.length && (
-              <ul className="mt-3 list-disc ps-5 text-sm text-neutral-700">
-                {p.impact.map((b: string, i: string) => <li key={i}>{b}</li>)}
-              </ul>
-            )}
-
-            {p.active && 
-              <div className="mt-4 flex flex-wrap gap-3 text-sm">
-                <TrackLink href={`/work/${p.slug}`} className="text-blue-600">Read case study →</TrackLink>
-                {p.links?.deepDive && <TrackLink href={p.links.deepDive} className="text-blue-600">Deep Dive</TrackLink>}
-                {p.links?.explainer && <TrackLink href={p.links.explainer} className="text-blue-600">Explainer</TrackLink>}
-                {p.links?.repo && (
-                  <a href={p.links.repo} target="_blank" rel="noopener noreferrer" className="text-blue-600">GitHub</a>
-                )}
-                {p.links?.demo && (
-                  <a href={p.links.demo} target="_blank" rel="noopener noreferrer" className="text-blue-600">Demo</a>
-                )}
-            </div>
-            }
-          </li>
-        ))}
-      </ul> */}
-
       <ul className="mt-8 grid gap-6 sm:grid-cols-2">
         {byDate.map(p => (
           <li key={p.slug} className="rounded-2xl border p-6 hover:bg-black/5">
