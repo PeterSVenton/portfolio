@@ -9,6 +9,8 @@ const client = new BedrockAgentRuntimeClient({
   region: process.env.BEDROCK_REGION,
 });
 
+export const runtime = 'nodejs';
+
 export async function POST(req: NextRequest) {
   const { question } = await req.json();
 
@@ -34,8 +36,6 @@ export async function POST(req: NextRequest) {
   });
 
   const resp = await client.send(cmd);
-
-  console.log("RESP", resp)
 
   const answer = resp.output?.text
 
