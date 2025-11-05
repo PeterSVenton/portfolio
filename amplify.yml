@@ -22,6 +22,12 @@ frontend:
                 --region "eu-west-2" \
                 --query "Parameter.Value" \
                 --output text)
+              
+              if [ "$key" = "BEDROCK_SYSTEM_PROMPT" ]; then
+                echo "Writing System Prompt File..."
+                echo  "$value" >> bedrock_system_prompt.txt
+                continue
+              fi
 
               echo "$key=$value" >> .env
               export "$key=$value"

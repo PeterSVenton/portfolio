@@ -4,6 +4,8 @@ import {
   BedrockAgentRuntimeClient,
   RetrieveAndGenerateCommand,
 } from "@aws-sdk/client-bedrock-agent-runtime";
+import fs from "fs";
+import path from "path";
 
 const client = new BedrockAgentRuntimeClient({
   region: "eu-central-1"
@@ -14,10 +16,11 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   const { question } = await req.json();
 
+  const promptPath = path.join(process.cwd(), "bedrock_system_prompt.txt");
+  const bedrockSystemPrompt = fs.readFileSync(promptPath, "utf8");
+
   console.log(`QUESTION: ${question} | KBID: ${process.env.BEDROCK_KB_ID} | ARN: ${process.env.BEDROCK_MODEL_ARN}`)
 
-  console.log("PROMPT: ", process.env.BEDROCK_SYSTEM_PROMPT)
-  
   const cmd = new RetrieveAndGenerateCommand({
     input: { text: question },
     retrieveAndGenerateConfiguration: {
@@ -28,7 +31,7 @@ export async function POST(req: NextRequest) {
         generationConfiguration: {
           promptTemplate: {
             // Send in the system prompt
-            textPromptTemplate: process.env.BEDROCK_SYSTEM_PROMPT,
+            textPromptTemplate: bedrockSystemPrompt,
           },
           // inferenceConfig: { temperature: 0.3 }
         },
