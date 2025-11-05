@@ -8,6 +8,7 @@ import { Socials } from "@/data/socials";
 import BurgerIcon from "./svgs/animated/Burger";
 
 const NAV = [
+  { href: "/chat", label: "Chat"},
   { href: "/work", label: "Work" },
   { href: "/experience", label: "Experience" },
   { href: "/articles", label: "Articles" },

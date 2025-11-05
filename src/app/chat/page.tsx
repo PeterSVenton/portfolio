@@ -53,18 +53,14 @@ function MessageBubble({ msg }: { msg: Msg }) {
     <ul className="ml-4 list-disc">
       {msg.sources.map((s, i) => (
         <li key={i}>
-          {s.url ? (
             <TrackLink
-              href={s.url}
+              href={s.url!} //if its null theres a coalesce in the route to make sure client never gets a null
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline"
             >
-              {s.title}
+              {s.title} ({s.count.toString()})
             </TrackLink>
-          ) : (
-            s.title
-          )}
         </li>
       ))}
     </ul>
@@ -76,11 +72,12 @@ function MessageBubble({ msg }: { msg: Msg }) {
 }
 
 type Msg = {
-  role: 'user' | 'ai'
-  text: string
+  role: 'user' | 'ai';
+  text: string;
     sources?: {
-    title: string
-    url?: string | null
+    title: string;
+    url: string;
+    count: number;
   }[]
 }
 
@@ -107,11 +104,11 @@ export default function ChatAboutPeter() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/ask-stream', {
+      const res = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            question: input,
+            question: text,
         }),
       })
 

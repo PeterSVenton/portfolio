@@ -1,60 +1,78 @@
 ---
 active: true
 title: Power Automate at Scale
-description: How to build Power Automate Solutions with Devops in mind
+description: Building Power Automate solutions with DevOps and maintainability in mind.
 date: 06/08/2025
 projectType: Company project
 stack:
   - Power Automate
-  - Sharepoint Lists
+  - SharePoint Lists
   - Dataverse
   - SQL
 ---
+
+import { Callout } from "@/components/callouts"
 
 # Power Automate at Scale
 
 ## Context
 
-The business wanted a way for managers and senior leaders to have clear oversight of transactions occurring with suppliers, particularly those above a certain threshold. Relying on manual checks created delays and made it difficult to consistently track approvals.
+The business needed a reliable way for managers and senior leaders to monitor transactions with suppliers, especially those above a defined threshold.  
+Manual checks caused delays and made it difficult to maintain consistent oversight.
 
-In order to solve the above issue I was asked to create a solution inside of Power Automate. After an outline of what the flow was to do and encompass I implemented a Power Automate solution, leveraging a **parent-child** flow design.
+To solve this, I designed and implemented a Power Automate solution that used a **parent–child flow pattern**. This approach allowed the system to process transactions at scale while remaining easy to maintain and extend.
 
-## Why a Parent Child flow Design?
+---
 
-Often times I find flows which are designed in a way that makes them difficult to update,maintain and track. The parent child flow design tackles these problems by:
-1. **Clear Purpose** - Each flow does one thing well. The parent handles orchestration, while the child focuses on processing a single record of data. (Single Responsibility Principle)
-2. **Maintainability** - Updates to the child flow don’t require changes to the parent, reducing risk and effort when business rules evolve.
-3. **Scalability** - The parent can loop through thousands of records while delegating processing to the child. This keeps each flow lighter and helps avoid hitting action limits.
-4. **Error Handling & Resilience** - If the child flow fails on one record, it doesn’t stop the parent from processing the rest. Issues are easier to isolate and resolve.
-5. **Reusability** - The child flow can be reused in other scenarios where the same transaction approval logic is needed, without duplicating steps.
-6. **Asynchronous** - Every child flow instance is independent from one another, allowing multiple records to be processed simultaneously.
+## Why a Parent Child Flow Design
 
-While these principles may feel like **common best practices** to those with a programming background, they’re not always obvious in low code tools like Power Automate. By intentionally applying them, business users can build solutions that are not only functional but also **robust, scalable,** and **easy to manage over time.**
+Flows often become difficult to maintain when logic and orchestration are combined in a single file.  
+By separating these concerns, the solution became simpler to update, test, and scale.
 
-{/* maybe add visual */}
+1. **Clear Purpose** — The parent handles orchestration, while the child focuses on processing a single record of data.  
+2. **Maintainability** — Changes to the child flow don’t affect the parent, reducing risk when business rules change.  
+3. **Scalability** — The parent can loop through thousands of records and delegate each one to the child.  
+4. **Error Handling** — A single record failure doesn’t stop the rest of the batch from running.  
+5. **Reusability** — The child flow can be reused anywhere the same transaction logic applies.  
+6. **Asynchronous Processing** — Each child flow runs independently, allowing multiple records to process in parallel.
+
+These principles are familiar to developers but not always obvious in low-code tools.  
+By applying them in Power Automate, the result is a system that is **robust, scalable, and easy to manage**.
+
+<Callout kind="tip" title="Design Takeaway">
+Even within low-code environments, traditional software principles like separation of concerns and single responsibility dramatically improve long-term maintainability.
+</Callout>
+
+---
 
 ## The Solution
 
-### Dataverse (The data source)
-The solution uses **Power Query** to load relevant transaction data into dataverse, and **Power Automate** for the parent and child flow.
+### Dataverse as the Data Source
 
-#### Power Query
+The solution uses **Power Query** to load transaction data into Dataverse and **Power Automate** for orchestration and processing.
 
-1. **ERP Connection** – Pulls all purchase orders above the threshold that were updated the previous day.
-2. **Microsoft Lists Connection** – Retrieves all records from a list used for tracking processing status.
-3. **Merge & Filter** – Joins the two datasets, returning only records not already in the list. These represent new transactions needing processing.
+#### Power Query Steps
+1. **ERP Connection** – Retrieves purchase orders above the threshold updated in the last 24 hours.  
+2. **Microsoft Lists Connection** – Fetches all existing records used to track processing status.  
+3. **Merge and Filter** – Combines both datasets and returns only records that have not yet been processed.
 
-The result is a Dataverse table refreshed daily. Every record requires processing, ensuring:
+The result is a Dataverse table refreshed daily.  
+Each record represents one transaction awaiting review.
 
-- **Auditability** – Every flow run corresponds to a meaningful transaction.
-- **Efficiency** – No redundant network calls or wasted capacity.
+Benefits:
+- **Auditability** – Every run corresponds to a real transaction.  
+- **Efficiency** – Only unprocessed items are passed to the flow, avoiding wasted calls and capacity.
 
+---
 
 ### The Orchestrator (Parent Flow)
-The role of the orchestrator is to get the rows from Dataverse, then iterate over every record and send it to the child flow as a http payload
-1. Runs after the data is refreshed in dataverse
-2. Iterates through the update records
-3. Calls the child flow for every record
+
+The parent flow coordinates the entire process.  
+It runs after Dataverse refreshes and handles record distribution.
+
+1. Triggers after the daily data refresh.  
+2. Retrieves new transactions from Dataverse.  
+3. Loops through each record and sends it to the child flow as a payload.
 
 ```mermaid
 graph TD
@@ -68,15 +86,18 @@ graph TD
   D -- Loop Exhausted --> Z
 ```
 
-### The Record Processor (Child Flow)
-The child flow uses a CONFIG object to define rules (e.g., approver roles, thresholds).
+---
 
-1. Creates a variable to store the parent flow’s input as a structured object, with built-in error handling (e.g., converting currency values safely).
-2. Creates a record in Microsoft Lists to show the transaction is being processed.
-3. Sends an approval request in Teams to the requester’s manager.
-4. Updates the record in Lists with the decision.
-5. If approved, escalates the approval request to a senior leader (as defined in CONFIG).
-6. Updates the record in Lists with the final decision.
+### The Record Processor (Child Flow)
+
+The child flow receives a transaction payload and applies configurable business logic through a **CONFIG** object.
+
+1. Parses the incoming payload and validates key fields.  
+2. Creates an entry in Microsoft Lists marking the record as “Processing.”  
+3. Sends an approval request to the requester’s manager in Teams.  
+4. Updates the list record with the decision.  
+5. If approved and over a defined threshold, escalates to a senior approver.  
+6. Updates the record with the final decision and timestamps.
 
 ```mermaid
 sequenceDiagram
@@ -87,21 +108,28 @@ sequenceDiagram
   participant L as Microsoft Lists
   participant T as Teams Approvals
 
-  DV->>P: Get yesterday's records
+  DV->>P: Get refreshed records
   P->>C: Invoke with {transactionId, CONFIG}
   C->>L: Create "Processing" entry
   C->>T: Send approval to Manager
   T-->>C: Manager decision
-  C->>L: Update with Manager decision
+  C->>L: Update record
 
-  alt Approved but threshold exceeded
+  alt Approved and threshold exceeded
     C->>T: Escalate to Senior
     T-->>C: Senior decision
-    C->>L: Update with final decision
+    C->>L: Update final status
   end
 
   C-->>P: {status, decision, timestamps}
 ```
 
+---
+
 ## Outcome
-This automation provided managers and senior leaders with **timely visibility** into high value transactions while ensuring every approval was **tracked, auditable,** and **consistent**. It reduced manual monitoring, standardized the approval process, and demonstrated how Power Automate can scale effectively when designed with maintainability and resilience in mind.
+
+This automation gave managers and leaders **real-time visibility** into high-value supplier transactions.  
+Every approval became **tracked, auditable, and consistent**, reducing manual checks and improving compliance.  
+
+The modular design proved that Power Automate can support enterprise-grade automation when built with DevOps principles in mind.  
+It also set a foundation for extending the pattern into future business processes that require the same reliability and scalability.

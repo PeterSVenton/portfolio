@@ -45,13 +45,25 @@ export async function POST(req: NextRequest) {
   const answer = resp.output?.text
 
   // citations has a lot of info so filter it, its okay to have internal documents will put a header that warns the user the document they're on is solely for knowledge base
-  const citations =
-    resp.citations
-      ?.flatMap((c) => c.retrievedReferences || [])
-      ?.map((r) => ({
-        title: r.metadata?.title ?? "A document which Peter forgot to title",
-        url: r.metadata?.url ?? null, //create a custom page for when this happens it should be impossible
-      })) ?? [];
+  const citationsMap =
+  resp.citations
+    ?.flatMap((c) => c.retrievedReferences || [])
+    ?.reduce((acc, r) => {
+      const url = r.metadata?.url ?? "/bedrock/missing"; //add a special route for when this happens
+      const title = r.metadata?.title ?? "A document which Peter forgot to title";
+
+      const existing = acc.get(url);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        acc.set(url, { title, url, count: 1 });
+      }
+      return acc;
+    }, new Map());
+
+const citations = citationsMap
+  ? Array.from(citationsMap.values())
+  : [];
 
   return NextResponse.json({ answer, citations });
 }
