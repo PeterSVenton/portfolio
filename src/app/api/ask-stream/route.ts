@@ -19,8 +19,6 @@ export async function POST(req: NextRequest) {
   const promptPath = path.join(process.cwd(), "bedrock_system_prompt.txt");
   const bedrockSystemPrompt = fs.readFileSync(promptPath, "utf8");
 
-  console.log(`QUESTION: ${question} | KBID: ${process.env.BEDROCK_KB_ID} | ARN: ${process.env.BEDROCK_MODEL_ARN}`)
-
   const cmd = new RetrieveAndGenerateCommand({
     input: { text: question },
     retrieveAndGenerateConfiguration: {
