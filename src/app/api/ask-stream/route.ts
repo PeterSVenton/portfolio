@@ -6,7 +6,7 @@ import {
 } from "@aws-sdk/client-bedrock-agent-runtime";
 
 const client = new BedrockAgentRuntimeClient({
-  region: process.env.BEDROCK_KB_REGION
+  region: "eu-central-1"
 });
 
 export const runtime = 'nodejs';

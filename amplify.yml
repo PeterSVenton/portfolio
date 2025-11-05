@@ -7,6 +7,7 @@ frontend:
         - npx playwright install chromium
     build:
       commands:
+        - echo $secrets
         - npm run build
   artifacts:
     baseDirectory: .next

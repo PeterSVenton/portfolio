@@ -1,0 +1,140 @@
+---
+active: true
+title: 2025 - Everybody Codes
+description: Solutions and explanations to Everybody Codes 2025
+date: 04/11/2025
+type: Explainer
+tags:
+  - Fabric
+---
+# Everybody Codes
+
+## What is it?
+**Everybody Codes** is a collaborative coding event designed to bring together developers, students, and tech enthusiasts of all skill levels to solve programming challenges, build creative projects, and learn from each other. The event encourages inclusivity, innovation, and community. Ultimately celebrating the idea that anyone can code.
+
+## Why an Article?
+This article will be explaining my solution to different problems from the **Everybody Codes** event. I’ll go through each challenge, share my thought process, and highlight what I learned along the way.
+
+The goal isn’t just to show the final answers, but to document the reasoning, approach, and lessons behind each solution so that others can learn from them, improve on them, or find inspiration for their own code.
+
+
+---
+
+## Quest 1
+
+The biggest challenge today was **input parsing** — transforming an input like:
+
+```
+Vyrdax,Drakzyph,Fyrryn,Elarzris
+
+R3,L2,R3,L1
+```
+
+into data structures easily understood by the computer.
+
+This kind of input is typical of programming puzzles — compact, slightly ambiguous, and designed to make you think carefully about how to extract meaningful data from plain text.  
+Getting this part right is crucial, because once your parsing logic is clean, solving the actual problem becomes much simpler.
+
+---
+
+### Input Preparation
+
+My `prepare_input` function parses the input and returns the data in a structured format:
+
+```python
+def prepare_input(path):
+    with open(path, 'r') as f:
+        file = f.read()
+
+    names, instructions = file.split("\n\n")
+
+    return names.split(","), [process_instruction(ins) for ins in instructions.split(",")]
+```
+
+The function reads the file, splits it into two sections (names and instructions), and then converts both into Python-friendly lists. The key part is `process_instruction`, which interprets each movement command.
+
+---
+
+### Instruction Processing
+
+Here’s the helper function `process_instruction`:
+
+```python
+def process_instruction(instruction):
+    direction, num = instruction[0], instruction[1:]
+
+    if direction == "R":
+        return int(num)
+    return int(num) * -1
+```
+
+This function converts each instruction (like `R3` or `L2`) into an int.  
+- A right movement (`R`) will increment the index, hence it is positive.  
+- A left movement (`L`) will decrement the index, hence it is negative.
+
+By representing directions numerically, it becomes much easier to perform arithmetic later on without dealing with strings.
+
+---
+
+### Part 1 – Navigating Boundaries
+
+```python
+def clamp(val, mini, maxi):
+    return max(min(val, maxi), mini)
+
+names, instructions = prepare_input("input.txt")
+
+idx = 0
+for ins in instructions:
+    new = idx + ins
+    idx = clamp(new, 0, len(names)-1)
+
+print(names[idx])
+```
+
+In this part, the index moves through the list based on the instructions.  
+The logic ensures we **don’t move out of bounds** — if an instruction goes below 0 or beyond the last index, we clamp the value to stay within the valid range.
+
+This mimics a simple traversal where you can move forward or backward, but never leave the “path.”
+
+---
+
+### Part 2 – Modulo Arithmetic
+
+```python
+names, instructions = prepare_input("input.txt")
+
+idx = 0
+for ins in instructions:
+    idx = (idx + ins) % len(names)
+
+print(names[idx])
+```
+
+In this version, instead of clamping, we use **modulo arithmetic** to make the movement **circular**.  
+If we go past the end of the list, we wrap around to the beginning — and vice versa. This gives the problem a more continuous, looping structure.
+
+This is a neat example of how a small mathematical tweak (`% len(names)`) can completely change the behavior of a program.
+
+---
+
+### Part 3 – Swapping Elements
+
+```python
+names, instructions = prepare_input("input.txt")
+
+for ins in instructions:
+    idx1 = 0
+    idx2 = ins % len(names)
+
+    names[idx1], names[idx2] = names[idx2], names[idx1]
+
+print(names[0])
+```
+
+This part introduces **element swapping**.  
+Here, every instruction determines another index, and the first name swaps places with that one. Over multiple iterations, this gradually reorders the list — like a simple shuffling algorithm.
+
+It’s a small twist on the previous logic, but it demonstrates how you can use movement-based instructions to mutate data structures in creative ways.
+
+---
