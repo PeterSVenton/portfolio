@@ -14,6 +14,10 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   const { question } = await req.json();
 
+  console.log(`QUESTION: ${question} | KBID: ${process.env.BEDROCK_KB_ID} | ARN: ${process.env.BEDROCK_MODEL_ARN}`)
+
+  console.log("PROMPT: ", process.env.BEDROCK_SYSTEM_PROMPT)
+  
   const cmd = new RetrieveAndGenerateCommand({
     input: { text: question },
     retrieveAndGenerateConfiguration: {

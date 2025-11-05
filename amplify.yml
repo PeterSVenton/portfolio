@@ -24,7 +24,6 @@ frontend:
                 --output text)
 
               echo "$key=$value" >> .env
-              echo "$key=$value"
               export "$key=$value"
           done
     build:
