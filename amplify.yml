@@ -5,9 +5,30 @@ frontend:
       commands:
         - npm ci
         - npx playwright install chromium
+
+        - echo "Fetching secrets from SSM..."
+        - |
+          for secret in $(aws ssm get-parameters-by-path \
+            --path "/amplify/d20tbrz1wh2p43/main/" \
+            --with-decryption \
+            --region "eu-west-2" \
+            --query "Parameters[*].{Name:Name}" \
+            --output text); do
+
+              key=$(basename "$secret")
+              value=$(aws ssm get-parameter \
+                --name "$secret" \
+                --with-decryption \
+                --region "eu-west-2" \
+                --query "Parameter.Value" \
+                --output text)
+
+              echo "$key=$value" >> .env
+              echo "$key=$value"
+              export "$key=$value"
+          done
     build:
       commands:
-        - echo $secrets
         - npm run build
   artifacts:
     baseDirectory: .next
