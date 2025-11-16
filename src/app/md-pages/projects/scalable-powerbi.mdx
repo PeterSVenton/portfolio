@@ -1,0 +1,226 @@
+---
+active: true
+type: Project
+title: Scalable Power BI Architecture with PBIP
+description: Building a version-controlled semantic model using PBIP, Git, and structured DAX conventions to enable scalable Power BI development.
+date: 09/11/2025
+projectType: Architecture Framework
+readMins: 10
+stack:
+  - Power BI
+  - DAX
+  - Github
+  - TabularEditor
+links:
+  demo: https://peterventon.co.uk/work/pbip-architecture
+---
+
+import { Callout, Metric } from "@/components/callouts"
+
+# Scalable Power BI Architecture with PBIP
+
+## Context
+
+In my current work I’ve been helping establish version-controlled, modular Power BI environments.  
+The goal is to make semantic models scalable, reviewable, and easily shared across development teams without losing the agility that makes Power BI so useful.
+
+This project uses a public dataset to demonstrate that same architectural pattern in an open, reproducible way.  
+It highlights how PBIP (Power BI Project files), Git, and a consistent DAX naming convention together create a professional-grade modeling environment.
+
+<Callout kind="info" title="Purpose">
+This project is both a demonstration and a living pattern.  
+It shows how to treat a Power BI model like code: structured, versioned, and composable.
+</Callout>
+
+---
+
+## The Goal
+
+### Functional Goals
+1. Show how `.pbip` project structures enable source-controlled Power BI models.  
+2. Demonstrate a consistent naming framework for measures that clarifies intent and dependency.  
+3. Enable semantic model reusability across workspaces and repositories.  
+4. Illustrate how this approach integrates into team-based analytics workflows.
+
+### Design Goals
+- Keep everything versionable instead of relying on binary `.pbix` files.  
+- Maintain human-readable structure for diffs and reviews.  
+- Provide clear separation between dataset, report, and connections.  
+- Document conventions so new developers can onboard quickly.
+
+---
+
+## PBIP Overview
+
+Power BI Project (`.pbip`) files are text-based representations of Power BI Desktop projects.  
+They break down a `.pbix` into smaller parts that can be tracked in Git.
+
+A typical PBIP structure looks like this:
+
+```
+📁 SalesModel.pbip
+ ┣ 📂 Dataset
+ ┃ ┣ model.bim
+ ┃ ┗ connections.json
+ ┣ 📂 Report
+ ┃ ┣ report.json
+ ┃ ┗ visuals/
+ ┣ project.json
+```
+
+This separation allows independent updates to dataset or report logic.  
+Changes to `model.bim` (which defines measures, relationships, and metadata) can be reviewed like any other code.  
+Teams can collaborate without overwriting the entire file.
+
+<Callout kind="tip" title="PBIP in Practice">
+In my current role PBIP has become the foundation for peer-reviewed Power BI development.  
+Teams commit model changes as pull requests so DAX logic can be reviewed just like SQL or Python.
+</Callout>
+
+---
+
+## Version Control Integration
+
+The `.pbip` folder works naturally with Git.  
+Because files like `model.bim` are JSON, Git can detect changes to measures, relationships, and KPIs.
+
+Typical workflow:
+
+1. Initialize a repo for the PBIP folder.  
+2. Create feature branches for measure or dataset updates.  
+3. Commit and push changes using Power BI Desktop or Tabular Editor.  
+4. Use pull requests for review and merge into main.  
+5. Deploy automatically through Fabric or the Power BI REST APIs.
+
+This turns a Power BI model into a managed, reviewable code asset.
+
+---
+
+## Naming Conventions for Measures
+
+As models grow, naming becomes just as important as logic.  
+I use a light Hungarian notation style to make the intent of each measure obvious at a glance.  
+The idea is simple: the prefix tells you how the measure behaves before you even open it.
+
+Hungarian notation is a naming convention that uses prefixes or symbols to describe the purpose or behavior of a variable.  
+In Power BI I adapt this approach for DAX measures so each measure name encodes how it behaves in the semantic model.  
+For example, `_` means a raw aggregation, `?` means it changes filter context, and `$` means it derives its value from other measures.  
+This makes models self-documenting and easier to maintain at scale.
+
+| Symbol | Meaning | Example | Description |
+|---------|----------|----------|--------------|
+| `_` | Base measure using aggregation only | `_sumSales` | Simple aggregation (no CALCULATE) |
+| `?` | Measure altering filter context | `?sumSales(Year=2025)` | Uses CALCULATE or context manipulation |
+| `%` | Ratio or rate | `%Margin` | Value between 0 and 1 |
+| `$` | Derived measure using other measures | `$Margin£` | Combines other measures (e.g. `DIVIDE([_sumProfit], [_sumSales])`) |
+| `>` | Selection-driven measure | `>SelectedYear` | Uses SELECTEDVALUE |
+| `*` | Independent measure | `*WeekToday` | No table dependencies (e.g. `WEEKNUM(TODAY())`) |
+| `@` | Local-only measure | `@DebugValue` | Exists only in PBIP, not the parent model |
+| `#` | Resolver measure | `#CurrentMetric` | Returns the correct measure via SWITCH logic |
+| `+` | Formatting or visual measure | `+BgColor` | Used for conditional formatting |
+
+You can **chain prefixes** together when a measure has multiple characteristics.  
+For example:
+
+```DAX
+@$%Margin = DIVIDE([_sumProfit], [_sumSales])
+```
+
+This means the measure only exists in the current model (`@`), is derived from other measures (`$`), and returns a percentage (`%`).  
+The order of prefixes should always be:
+
+```
+@, #, ?, $, %
+```
+
+All other prefixes (`_`, `>`, `*`, `+`) must be used on their own.  
+Chaining `>` is only valid when used with a resolver (`#`) because it depends on selection logic.
+
+<Callout kind="success" title="Result">
+Every measure communicates its intent and context directly in its name.  
+No need to open the DAX editor just to understand what it does.
+</Callout>
+
+---
+
+## Implementation Example
+
+To demonstrate, I built a model using the **Open Government UK Trade dataset**.  
+It tracks imports, exports, and trade balances over time, structured as follows:
+
+```
+📁 TradeAnalytics.pbip
+ ┣ 📂 Dataset
+ ┃ ┣ model.bim
+ ┃ ┗ connections.json
+ ┣ 📂 Report
+ ┃ ┣ Overview.pbir
+ ┃ ┗ visuals/
+ ┣ project.json
+```
+
+Example DAX definitions:
+
+```DAX
+_sumExports = SUM(Trade[Exports])
+_sumImports = SUM(Trade[Imports])
+$TradeBalance£ = [_sumExports] - [_sumImports]
+%ExportShare = DIVIDE([_sumExports], [_sumExports] + [_sumImports])
+```
+
+Once published, the model shows both the calculations and the logic behind them, all versioned and reviewable.
+
+---
+
+## CI/CD Setup
+
+In my current position this architecture fits into a full Power BI deployment pipeline.  
+Each semantic model has its own repository, and every environment (Dev, Test, Prod) is linked to a workspace.  
+PBIP folders deploy through Fabric Deployment Pipelines or Azure DevOps YAML tasks.  
+Validation scripts run during build to check naming and metadata consistency before publish.
+
+To keep everything compliant, I use a YAML setup that runs a custom validation script during deployment.  
+It scans all measures in the dataset to confirm they follow the approved prefix order and naming format before allowing the build to proceed.  
+This helps enforce consistency across projects and stops non-standard naming from slipping through review.
+
+<Callout kind="info" title="Governance by Design">
+By keeping naming, validation, and metadata rules in the repository itself, the model enforces governance automatically.
+</Callout>
+
+---
+
+## Results
+
+<div className="mt-6 grid gap-3 sm:grid-cols-3">
+  <Metric value="1" label="Semantic Model" note="Version-controlled via PBIP" />
+  <Metric value="50+" label="Measures" note="Structured using naming conventions" />
+  <Metric value="100%" label="Reviewable Changes" note="Tracked in Git as code" />
+</div>
+
+---
+
+## Lessons Learned
+
+- PBIP makes Power BI a developer-friendly modeling platform.  
+- Version control brings accountability and transparency.  
+- Hungarian-style naming adds clarity to complex DAX logic.  
+- Folder structures make CI/CD predictable and maintainable.  
+- Treating BI models like code keeps them scalable and auditable.
+
+---
+
+## Next Steps
+
+- Add automated validation checks for naming in CI builds.  
+- Extend conventions to calculated columns and hierarchies.  
+- Link PBIP repos with Fabric Semantic Models for hybrid governance.  
+- Explore YAML-driven deployment metadata for publishing.
+
+---
+
+## Conclusion
+
+Applying code-based discipline to Power BI through PBIP, version control, and clear naming turns semantic models into structured data products rather than opaque files.  
+The result is a reliable architecture where teams can collaborate, review, and evolve models confidently.
+
+> **Model with intent. Govern with structure. Scale with trust.**

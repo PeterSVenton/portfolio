@@ -1,0 +1,90 @@
+<h1>Everybody Codes</h1>
+<h2>What is it?</h2>
+<p><strong>Everybody Codes</strong> is a collaborative coding event designed to bring together developers, students, and tech enthusiasts of all skill levels to solve programming challenges, build creative projects, and learn from each other. The event encourages inclusivity, innovation, and community. Ultimately celebrating the idea that anyone can code.</p>
+<h2>Why an Article?</h2>
+<p>This article will be explaining my solution to different problems from the <strong>Everybody Codes</strong> event. I’ll go through each challenge, share my thought process, and highlight what I learned along the way.</p>
+<p>The goal isn’t just to show the final answers, but to document the reasoning, approach, and lessons behind each solution so that others can learn from them, improve on them, or find inspiration for their own code.</p>
+<hr>
+<h2>Quest 1</h2>
+<p>The biggest challenge today was <strong>input parsing</strong> — transforming an input like:</p>
+<pre><code>Vyrdax,Drakzyph,Fyrryn,Elarzris
+
+R3,L2,R3,L1
+</code></pre>
+<p>into data structures easily understood by the computer.</p>
+<p>This kind of input is typical of programming puzzles — compact, slightly ambiguous, and designed to make you think carefully about how to extract meaningful data from plain text.<br>
+Getting this part right is crucial, because once your parsing logic is clean, solving the actual problem becomes much simpler.</p>
+<hr>
+<h3>Input Preparation</h3>
+<p>My <code>prepare_input</code> function parses the input and returns the data in a structured format:</p>
+<pre><code class="language-python">def prepare_input(path):
+    with open(path, 'r') as f:
+        file = f.read()
+
+    names, instructions = file.split("\n\n")
+
+    return names.split(","), [process_instruction(ins) for ins in instructions.split(",")]
+</code></pre>
+<p>The function reads the file, splits it into two sections (names and instructions), and then converts both into Python-friendly lists. The key part is <code>process_instruction</code>, which interprets each movement command.</p>
+<hr>
+<h3>Instruction Processing</h3>
+<p>Here’s the helper function <code>process_instruction</code>:</p>
+<pre><code class="language-python">def process_instruction(instruction):
+    direction, num = instruction[0], instruction[1:]
+
+    if direction == "R":
+        return int(num)
+    return int(num) * -1
+</code></pre>
+<p>This function converts each instruction (like <code>R3</code> or <code>L2</code>) into an int.</p>
+<ul>
+<li>A right movement (<code>R</code>) will increment the index, hence it is positive.</li>
+<li>A left movement (<code>L</code>) will decrement the index, hence it is negative.</li>
+</ul>
+<p>By representing directions numerically, it becomes much easier to perform arithmetic later on without dealing with strings.</p>
+<hr>
+<h3>Part 1 – Navigating Boundaries</h3>
+<pre><code class="language-python">def clamp(val, mini, maxi):
+    return max(min(val, maxi), mini)
+
+names, instructions = prepare_input("input.txt")
+
+idx = 0
+for ins in instructions:
+    new = idx + ins
+    idx = clamp(new, 0, len(names)-1)
+
+print(names[idx])
+</code></pre>
+<p>In this part, the index moves through the list based on the instructions.<br>
+The logic ensures we <strong>don’t move out of bounds</strong> — if an instruction goes below 0 or beyond the last index, we clamp the value to stay within the valid range.</p>
+<p>This mimics a simple traversal where you can move forward or backward, but never leave the “path.”</p>
+<hr>
+<h3>Part 2 – Modulo Arithmetic</h3>
+<pre><code class="language-python">names, instructions = prepare_input("input.txt")
+
+idx = 0
+for ins in instructions:
+    idx = (idx + ins) % len(names)
+
+print(names[idx])
+</code></pre>
+<p>In this version, instead of clamping, we use <strong>modulo arithmetic</strong> to make the movement <strong>circular</strong>.<br>
+If we go past the end of the list, we wrap around to the beginning — and vice versa. This gives the problem a more continuous, looping structure.</p>
+<p>This is a neat example of how a small mathematical tweak (<code>% len(names)</code>) can completely change the behavior of a program.</p>
+<hr>
+<h3>Part 3 – Swapping Elements</h3>
+<pre><code class="language-python">names, instructions = prepare_input("input.txt")
+
+for ins in instructions:
+    idx1 = 0
+    idx2 = ins % len(names)
+
+    names[idx1], names[idx2] = names[idx2], names[idx1]
+
+print(names[0])
+</code></pre>
+<p>This part introduces <strong>element swapping</strong>.<br>
+Here, every instruction determines another index, and the first name swaps places with that one. Over multiple iterations, this gradually reorders the list — like a simple shuffling algorithm.</p>
+<p>It’s a small twist on the previous logic, but it demonstrates how you can use movement-based instructions to mutate data structures in creative ways.</p>
+<hr>

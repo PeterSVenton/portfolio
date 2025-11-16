@@ -1,5 +1,6 @@
 "use client";
 
+import { config } from "@/data/config";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
@@ -93,7 +94,7 @@ export default function Header() {
             );
           })}
         </ul>
-
+        {config.showGit && 
         <Link
           href={Socials.Email.href}
           className="hidden lg:inline-block rounded-xl bg-black px-3 py-2 text-sm text-white"
@@ -103,6 +104,7 @@ export default function Header() {
         >
           Get In Touch
         </Link>
+}
 
         {/* 
         ------------------
@@ -162,7 +164,8 @@ export default function Header() {
                     );
                   })}
                 </ul>
-
+                
+                {config.showGit &&
                 <div className="mt-3">
                   <Link
                     href={Socials.Email.href}
@@ -176,6 +179,7 @@ export default function Header() {
                     Get In Touch
                   </Link>
                 </div>
+}
               </div>
             </motion.div>
           </>

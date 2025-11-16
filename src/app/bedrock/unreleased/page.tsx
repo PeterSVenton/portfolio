@@ -11,7 +11,7 @@ export default function BedrockUnreleasedPage() {
     <main className="flex flex-col items-center justify-center text-center">
       <div className="max-w-xl">
         <Image
-          src="/error-codes/moHappy.png"
+          src="/error-codes/moHappy.webp"
           alt="Bedrock 404 illustration"
           width={400}
           height={300}

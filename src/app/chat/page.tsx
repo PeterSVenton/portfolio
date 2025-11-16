@@ -1,12 +1,11 @@
-'use client'
+"use client";
 
-import TrackLink from '@/components/TrackLink'
+import TrackLink from "@/components/TrackLink";
 // TODO: break down the use client into smaller components so some of it can be SSR
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-
+import { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 function TypingBubble() {
   return (
@@ -18,7 +17,7 @@ function TypingBubble() {
         </span>
       </div>
     </div>
-  )
+  );
 }
 
 function Dots() {
@@ -28,104 +27,111 @@ function Dots() {
       <span className="mx-0.5 h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400 [animation-delay:-100ms]" />
       <span className="mx-0.5 h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400" />
     </span>
-  )
+  );
 }
 
 function MessageBubble({ msg }: { msg: Msg }) {
-  const isUser = msg.role === 'user'
+  const isUser = msg.role === "user";
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
         className={[
-          'max-w-[85%] rounded-2xl border px-3 py-2 text-sm leading-relaxed',
-          isUser ? 'bg-neutral-50' : 'bg-white',
-        ].join(' ')}
+          "max-w-[85%] rounded-2xl border px-3 py-2 text-sm leading-relaxed",
+          isUser ? "bg-neutral-50" : "bg-white",
+        ].join(" ")}
       >
         <div className="prose prose-sm max-w-none text-neutral-800">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {msg.text}
-            </ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
         </div>
 
         {!isUser && msg.sources && msg.sources.length > 0 && (
-  <div className="mt-2 border-t pt-2 text-xs text-neutral-600">
-    <span className="mr-1 font-medium">Sources:</span>
-    <ul className="ml-4 list-disc">
-      {msg.sources.map((s, i) => (
-        <li key={i}>
-            <TrackLink
-              href={s.url!} //if its null theres a coalesce in the route to make sure client never gets a null
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
-            >
-              {s.title} ({s.count.toString()})
-            </TrackLink>
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
+          <div className="mt-2 border-t pt-2 text-xs text-neutral-600">
+            <span className="mr-1 font-medium">Sources:</span>
+            <ul className="ml-4 list-disc">
+              {msg.sources.map((s, i) => (
+                <li key={i}>
+                  <TrackLink
+                    href={s.url!} //if its null theres a coalesce in the route to make sure client never gets a null
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {s.title} ({s.count.toString()})
+                  </TrackLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 }
 
 type Msg = {
-  role: 'user' | 'ai';
+  role: "user" | "ai";
   text: string;
-    sources?: {
+  sources?: {
     title: string;
     url: string;
     count: number;
-  }[]
-}
+  }[];
+};
 
 export default function ChatAboutPeter() {
-  const [messages, setMessages] = useState<Msg[]>([])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const listRef = useRef<HTMLDivElement>(null)
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
 
   // scroll to latest message
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, loading])
+    listRef.current?.scrollTo({
+      top: listRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, loading]);
 
-  const canSend = useMemo(() => input.trim().length > 0 && !loading, [input, loading])
+  const canSend = useMemo(
+    () => input.trim().length > 0 && !loading,
+    [input, loading]
+  );
 
   async function send(q?: string) {
-    const text = (q ?? input).trim()
-    if (!text) return
+    const text = (q ?? input).trim();
+    if (!text) return;
 
-    const userMsg: Msg = { role: 'user', text }
-    setMessages((m) => [...m, userMsg])
-    setInput('')
-    setLoading(true)
+    const userMsg: Msg = { role: "user", text };
+    setMessages((m) => [...m, userMsg]);
+    setInput("");
+    setLoading(true);
 
     try {
-      const res = await fetch('/api/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            question: text,
+          question: text,
         }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
       const botMsg: Msg = {
-        role: 'ai',
-        text: data.answer ?? data.error ?? 'Sorry, I could not generate a response.',
+        role: "ai",
+        text:
+          data.answer ??
+          data.error ??
+          "Sorry, I could not generate a response.",
         sources: data.citations,
-      }
-      setMessages((m) => [...m, botMsg])
+      };
+      setMessages((m) => [...m, botMsg]);
     } catch {
       setMessages((m) => [
         ...m,
-        { role: 'ai', text: 'Network error - please try again.' },
-      ])
+        { role: "ai", text: "Network error - please try again." },
+      ]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -134,9 +140,16 @@ export default function ChatAboutPeter() {
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Speak with <strong>PETER</strong></h1>
+          <h1 className="text-xl font-semibold">
+            Speak with <strong>PETER</strong>
+          </h1>
           <p className="mt-1 text-sm text-neutral-600">
-            This is not a conversation with Peter Venton, this is the <strong>P</strong>ersonal <strong>E</strong>ngineering <strong>T</strong>echnology & <strong>E</strong>xperience <strong>R</strong>esponder. A knowledge based assistant trained on my portfolio content to answer questions about my projects, skills, and experience.
+            This is not a conversation with Peter Venton, this is the{" "}
+            <strong>P</strong>ersonal <strong>E</strong>ngineering{" "}
+            <strong>T</strong>echnology & <strong>E</strong>xperience{" "}
+            <strong>R</strong>esponder. A knowledge based assistant trained on
+            my portfolio content to answer questions about my projects, skills,
+            and experience.
           </p>
         </div>
       </div>
@@ -170,7 +183,7 @@ export default function ChatAboutPeter() {
           placeholder="e.g. What is Peter Venton's skillset?"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && canSend && send()}
+          onKeyDown={(e) => e.key === "Enter" && canSend && send()}
         />
         <button
           onClick={() => send()}
@@ -183,8 +196,20 @@ export default function ChatAboutPeter() {
 
       {/* Footer */}
       <p className="mt-2 text-xs text-neutral-500">
-        Answers summarise content from my site and projects, sources listed when available.
+        Answers summarise content from my site and projects, sources listed when
+        available.
+      </p>
+
+      <p className="mt-1 text-xs text-neutral-500">
+        Curious how I was built?{" "}
+        <TrackLink
+          href="/work/aws-bedrock"
+          className="text-blue-600 hover:underline"
+        >
+          Read the build story
+        </TrackLink>
+        .
       </p>
     </div>
-  )
+  );
 }

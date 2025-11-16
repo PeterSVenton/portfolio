@@ -2,6 +2,7 @@ import Image from 'next/image';
 import React from 'react'
 import { Socials } from '@/data/socials';
 import Link from 'next/link';
+import { config } from '@/data/config';
 
 
 export const metadata = {
@@ -19,7 +20,7 @@ const HeroMain = () => {
       <div className="mt-6 flex gap-3">
         <Link href="/chat" className="rounded-xl bg-black px-4 py-2 text-white">Chat with my knowledge base</Link>
         <Link href="/work" className="rounded-xl border px-4 py-2">View Work</Link>
-        <Link href={Socials.Email.href} className="rounded-xl border px-4 py-2">Get In Touch</Link>
+        {config.showGit && <Link href={Socials.Email.href} className="rounded-xl border px-4 py-2">Get In Touch</Link>}
       </div>
     </div>
   )

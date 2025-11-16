@@ -2,6 +2,7 @@
   "metadataAttributes": {
     "url": "https://www.peterventon.co.uk/kb-additional/about",
     "active": true,
+    "internalDocument": true,
     "title": "About Me",
     "summary": "I build data ecosystems — not just dashboards.",
     "author": "Peter Venton",

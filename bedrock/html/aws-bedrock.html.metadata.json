@@ -1,0 +1,17 @@
+{
+  "metadataAttributes": {
+    "url": "https://www.peterventon.co.uk/work/aws-bedrock",
+    "active": true,
+    "type": "Project",
+    "title": "AI Powered Portfolio",
+    "description": "Demonstrating how structured data models enable conversational insights through AWS Bedrock.",
+    "date": "02/11/2025",
+    "projectType": "Personal project",
+    "readMins": 9,
+    "stack": [
+      "Typescript",
+      "AWS"
+    ],
+    "links_demo": "https://peterventon.co.uk/chat"
+  }
+}

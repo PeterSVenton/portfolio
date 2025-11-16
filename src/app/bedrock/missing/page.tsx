@@ -11,7 +11,7 @@ export default function BedrockMissingPage() {
     <main className="flex flex-col items-center justify-center text-center">
       <div className="max-w-xl">
         <Image
-          src="/error-codes/walleTrash.png"
+          src="/error-codes/walleTrash.webp"
           alt="Bedrock 404 illustration"
           width={400}
           height={300}

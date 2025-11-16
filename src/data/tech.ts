@@ -22,7 +22,11 @@ export enum Tech {
   BigQuery = "BigQuery",
   GA4 = "GA4",
 
-  Github = "Github"
+  Github = "Github",
+  TabularEditor="TabularEditor",
+  DaxStudio = "DaxStudio",
+  VertipaqAnalyzer = "VertipaqAnalyzer"
+
 }
 
 export enum TechCategory {
@@ -160,6 +164,24 @@ export const TECH_META: Record<Tech, TechMeta> = {
     label: "Github",
     url: "https://github.com/",
     category: TechCategory.Tooling
+  },
+
+  [Tech.TabularEditor]: {
+    label: "Tabular Editor",
+    url: "https://tabulareditor.com/",
+    category: TechCategory.BI
+  },
+
+  [Tech.DaxStudio]: {
+    label: "DAX Studio",
+    url: "https://daxstudio.org/",
+    category: TechCategory.BI
+  },
+
+  [Tech.VertipaqAnalyzer]: {
+    label: "Vertipaq Analyzer",
+    url: "https://www.sqlbi.com/tools/vertipaq-analyzer/",
+    category: TechCategory.BI
   }
 
 };

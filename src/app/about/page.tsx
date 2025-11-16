@@ -4,6 +4,7 @@ import TrackLink from '@/components/TrackLink'
 import TechChip from '@/components/TechChip'
 import { Tech } from '@/data/tech'
 import { SocialOrder, Socials } from '@/data/socials' // expects { icon: LucideIcon, label, href }
+import { config } from '@/data/config'
 
 export const metadata: Metadata = {
   title: 'About',
@@ -176,10 +177,12 @@ export default function AboutPage() {
                 Projects
               </TrackLink>
             </div>
-
+            
+            {config.showGit &&
             <a href={mailto} className="mt-3 block rounded-xl bg-black px-3 py-2 text-center text-sm text-white">
               Get in touch
             </a>
+}
           </div>
         </aside>
 

@@ -9,7 +9,9 @@
 - [ ] Add Breadcrumbs / TOC to mdx pages
 - [ ] When on paginated migration on mobile the table causes overflow
 - [ ] Header/Navbar doesn't render correctly on mobile when looking at certain md pages
-- [ ] Add Custom page for knowledge base linking the user to a screen that doesn't exist
+- [x] Add Custom page for knowledge base linking the user to a screen that doesn't exist
+- [x] Add Custom page for knowledge base linking the user to an unreleased piece of content
+- [ ] Add Custom page for knowledge base linking the user to an internal doc (render the page but put a warning that its internal for kb context)
 - [ ] Add a secret screen that knowledge base can link to if the user specifically asks for it
 
 
