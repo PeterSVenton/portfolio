@@ -1,18 +1,19 @@
 {
   "metadataAttributes": {
-    "url": "https://www.peterventon.co.uk/kb-internal/about",
+    "url": "https://www.peterventon.co.uk/kb-internal/experience",
     "active": true,
     "internalDocument": true,
-    "title": "About Me",
-    "summary": "I build data ecosystems — not just dashboards.",
+    "title": "Experience",
+    "summary": "A summary of the work Experience Peter Venton has",
     "author": "Peter Venton",
-    "slug": "about-me",
+    "slug": "experience",
     "keywords": [
       "data modelling",
       "Power BI",
       "semantic layer",
       "AWS",
       "Azure",
+      "Experience",
       "analytics engineering"
     ]
   }

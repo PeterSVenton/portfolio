@@ -1,0 +1,19 @@
+{
+  "metadataAttributes": {
+    "url": "https://www.peterventon.co.uk/work/scalable-powerbi",
+    "active": true,
+    "type": "Project",
+    "title": "Scalable Power BI Architecture with PBIP",
+    "description": "Building a version-controlled semantic model using PBIP, Git, and structured DAX conventions to enable scalable Power BI development.",
+    "date": "09/11/2025",
+    "projectType": "Architecture Framework",
+    "readMins": 10,
+    "stack": [
+      "Power BI",
+      "DAX",
+      "Github",
+      "TabularEditor"
+    ],
+    "links_demo": "https://peterventon.co.uk/work/pbip-architecture"
+  }
+}

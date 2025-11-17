@@ -4,13 +4,13 @@
     "active": true,
     "type": "Project",
     "title": "Paginated Report Migration",
-    "description": "Led a paginated reporting migration from BOXI to PowerBI. Reverse engineered datasets, validated totals, and standardised layouts/components for faster change control.",
+    "description": "Led a paginated reporting migration from BOXI to Power BI. Rebuilt datasets, validated figures, and standardised report templates for faster change control and consistent governance.",
     "date": "01/07/2024",
     "projectType": "Company project",
     "readMins": 6,
     "impact": [
       "100+ Reports Rebuilt",
-      "5 Critical DW issues fixed",
+      "5 Critical DW Issues Fixed",
       "6x Faster Response Time"
     ],
     "stack": [

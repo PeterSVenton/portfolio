@@ -1,256 +1,120 @@
-<div><span><span>info</span></span></div><div><p><strong>TL;DR:</strong> I took a set of regulated BOXI PDFs and rebuilt them in Power BI Paginated with shared datasets, parameterised templates, and a validation process signed off by Finance. The result is faster change control and audit-ready outputs.</p></div>
+<h1>Paginated Report Migration</h1>
+<div><span><span>info</span></span></div><div><p><strong>TL;DR:</strong> Rebuilt 100+ regulated BOXI reports in Power BI Paginated using shared datasets, parameterised templates, and a Finance signed validation process. Change requests moved from weeks to days and outputs are audit ready.</p></div>
 <h2>Context</h2>
-<p>The business wanted to standardise on a single vendor for both dashboards and flat reports. At the time we used <strong>Power BI</strong> for dashboards and <strong>BusinessObjects (BOXI)</strong> for flat reports. In BOXI, a separate team did the heavy SQL work and exposed a user-friendly drag-and-drop layer. Moving to a SQL-centric workflow in Power BI created an ownership and skills gap. I stepped in, took responsibility for the data modelling and queries, and rewrote every single report.</p>
-<p><strong>Goal:</strong> deliver the same Excel/PDF outputs from <strong>Power BI Paginated Reports</strong> that business users previously received from <strong>BOXI</strong>—with tighter governance and quicker change control.</p>
-<div><div><div>100+</div><div>Reports Rebuilt</div><div>Over the course of 1 year</div></div><div><div>5</div><div>Critical DW issues fixed</div><div>Issues which impacted our P&#x26;L</div></div><div><div>6x</div><div>Faster response time</div><div>Weeks → Days for complex reports</div></div></div>
-<h2>Problem</h2>
+<p>The company used BusinessObjects (BOXI) for static PDFs and Power BI for dashboards. BOXI scheduling worked, but metric logic was inconsistent across reports and hard to audit.<br>
+Leadership asked to consolidate on Power BI. I took ownership of the paginated layer, reverse engineered BOXI universes, designed reusable SQL datasets, and matched figures exactly.</p>
+<div><div><div>100+</div><div>Reports rebuilt</div><div>over 1 year</div></div><div><div>5</div><div>Critical DW issues fixed</div><div>impacting P&#x26;L</div></div><div><div>6x</div><div>Faster changes</div><div>weeks to days</div></div></div>
+<h2>Goals</h2>
+<ol>
+<li>Deliver the same PDF and Excel outputs from Power BI Paginated.</li>
+<li>Replace fragmented BOXI logic with a governed, reusable SQL layer.</li>
+<li>Standardise templates and parameters for quicker change control.</li>
+<li>Validate totals against BOXI and secure Finance sign off.</li>
+</ol>
+<h2>Challenges</h2>
 <ul>
-<li>Inconsistent variable logic across BOXI reports for the same field.</li>
-<li>Information asymmetry between the data engineering team and the BI team.</li>
-<li>Some BOXI schedules were customer-facing and required a smooth, low-risk transition.</li>
-<li>Live BOXI universes existed, but we lacked direct access to query the underlying tables.</li>
-<li>Sparse guidance on advanced layouts/expressions for Power BI Paginated (Report Builder).</li>
+<li>Duplicated and conflicting metric definitions in BOXI.</li>
+<li>Limited visibility into universe SQL and joins.</li>
+<li>Customer facing schedules required a zero defect cutover.</li>
+<li>Sparse documentation for some legacy variables.</li>
 </ul>
 <h2>Approach</h2>
-<h3>Creating a checklist</h3>
-<p>At the start of each month the data engineering team sent a BOXI Excel export showing all schedules that ran in the previous month. The data was invaluable, but the raw structure made it hard to interpret.</p>
-<p>I reshaped it into excels that acted as a point of reference to how far through the migration I was:</p>
-<ol>
-<li>
-<p><strong>Report index (by report name)</strong></p>
-<ul>
-<li><strong>First tab columns:</strong> <code>report rank</code>, <code>report name</code>, <code># schedules</code>, <code>customer-facing?</code>, <code>Entra ID group?</code></li>
-<li>Sort by <code># schedules</code> (desc) and assign a rank. Each <strong>report name</strong> is unique here.</li>
-<li>Subsequent tabs follow the pattern <code>report rank | report name</code> and list recipients, destinations, cadence, parameters, and file types.</li>
-<li><strong>Outcome:</strong> a prioritised list of high-impact reports and those with customer exposure.</li>
-</ul>
-</li>
-<li>
-<p><strong>Recipient index (by business user / group)</strong></p>
-<ul>
-<li>Group schedules by <strong>recipient</strong> to show total schedules received.</li>
-<li>Highlights departments and individuals most reliant on scheduled reports and identifies consolidation opportunities.</li>
-</ul>
-</li>
-</ol>
-<h3>Rationalising BOXI logic</h3>
+<h3>1. Audit and prioritisation</h3>
+<p>I requested a monthly export of all BOXI schedules and recipients. From that I built two working indexes:</p>
 <ul>
 <li>
-<p><strong>Audit → fix or retire.</strong> For each BOXI report, I reviewed the variable definitions. If a definition was incorrect, I corrected it in the Paginated report. If the report was fundamentally wrong (business rule/logic made the figures meaningless), I <strong>deprecated it</strong> and notified the owning department with evidence and a replacement path where applicable.</p>
+<p><strong>Report index</strong> ranked by number of schedules and customer exposure.<br>
+This identified the highest value reports to migrate first.</p>
 </li>
 <li>
-<p><strong>Canonical metric dictionary.</strong> I normalised calculations into a single semantic SQL layer (CTEs/views) so the same definition is used everywhere (joins, filters, precedence, edge cases).</p>
+<p><strong>Recipient index</strong> grouped by user and department.<br>
+This showed dependency clusters and consolidation opportunities.</p>
 </li>
-<li>
-<p><strong>Scalable by design (no more hard coded variables).</strong> Historically, BOXI used separate variables instead of column groups. i.e. If showing sales per warehouse there was a separate variable for warehouse 1/2/3/4. In Power BI Paginated I switched to a <strong>dimension-driven</strong> pattern:</p>
+</ul>
+<p>These indexes became the plan of record for migration and communication.</p>
+<h3>2. Rationalising logic</h3>
+<p>Each BOXI report was reviewed and categorised:</p>
 <ul>
-<li>Dataset returns one row per <strong>Warehouse</strong>.</li>
-<li>The report uses a <strong>Matrix</strong> with a <strong>column group on <code>Warehouse</code></strong> and row groups on the chosen grain.</li>
-<li>New warehouses appear automatically at runtime—no new columns, no code changes.</li>
+<li><strong>Rebuild</strong> when logic was correct but needed standardisation.</li>
+<li><strong>Fix</strong> when logic or joins were wrong.</li>
+<li><strong>Retire</strong> when the rule was no longer valid.</li>
 </ul>
-</li>
-<li>
-<p><strong>Example dataset shape (simplified):</strong></p>
-<pre><code class="language-sql">SELECT
-    dw.warehouse_name,
-    fs.PeriodEnd,
-    SUM(fs.SalesAmount) AS SalesAmount
-FROM fact_sales fs
-JOIN dim_warehouse dw ON fs.WarehouseKey = dw.WarehouseKey
-JOIN dim_date odate ON odate.dim_date_key = fs.dim_order_date_key
-WHERE odate.date BETWEEN @start_date AND @end_date
-GROUP BY dw.WarehouseName, f.PeriodEnd;
-</code></pre>
-</li>
-</ul>
-<h3>Optimized SQL Queries</h3>
-<ul>
-<li>A lot of reports would need a dynamic column group that was by year month. If we wanted to show a sales per month for a given year per customer, i.e. 2024 the result set of our SQL query would need to contain a record for every month per customer, like in the below.</li>
-</ul>
-<p>| customer_number | customer_name | saleperson_name | year | month | cases_sold |
-| --- | --- | --- | --- | --- | --- |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 1 | 55 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 2 | 42 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 3 | 13 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 4 | 80 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 5 | 60 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 6 | 74 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 7 | 83 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 8 | 92 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 9 | 100 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 10 | 110 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 11 | 72 |
-| BEN001 | Benjamin's Bakery | Peter Venton | 2024 | 12 | 86 |</p>
-<p>There's multiple ways to get this result set but a clear winner in terms of how clean the solution is.</p>
-<h4>Anti Patterns</h4>
-<ol>
-<li><strong>Aggregating with MAX/MIN</strong></li>
-</ol>
-<p>Works, but every new descriptive field means more aggregates, duplication, and hurts readability. See the query below, if we wanted to add the customer's first address line we'd need to add another <code>MAX()</code> or <code>MIN()</code>.</p>
-<pre><code class="language-sql">SELECT
-c.customer_number,
-MAX(c.customer_name) AS customer_name,
-MAX(u.full_name) AS salesperson_name,
-odate.year,
-odate.month,
-SUM(s.cases_sold) AS cases_sold
-FROM fact_sales s
-JOIN dim_date odate
-ON s.dim_order_date_key = odate.dim_date_key
-JOIN dim_customer c
-ON s.dim_customer_key = c.dim_customer_key
-JOIN dim_user u
-ON u.dim_user_key = c.dim_salesperson_key
-WHERE odate.year = @year --parameter that lets the user pick the year
-GROUP BY c.customer_number, odate.year, odate.month
-</code></pre>
-<ol start="2">
-<li><strong>Grouping by every descriptive column</strong></li>
-</ol>
-<p>Balloons the <code>GROUP BY</code>, makes queries noisy, and can hurt the Query Execution Plan.</p>
-<pre><code class="language-sql">SELECT
-c.customer_number,
-c.customer_name,
-u.full_name AS salesperson_name,
-odate.year,
-odate.month,
-SUM(s.cases_sold) AS cases_sold
-FROM fact_sales s
-JOIN dim_date odate
-ON s.dim_order_date_key = odate.dim_date_key
-JOIN dim_customer c
-ON s.dim_customer_key = c.dim_customer_key
-JOIN dim_user u
-ON u.dim_user_key = c.dim_salesperson_key
-WHERE odate.year = @year --parameter that lets the user pick the year
-GROUP BY c.customer_number,
-c.customer_name,
-u.full_name,
-odate.year,
-odate.month
-</code></pre>
-<h4>Clean Pattern</h4>
-<ol>
-<li><strong>Aggregate the fact</strong> by foreign (dimension) keys and date attributes.</li>
-<li><strong>Join dimensions after</strong> to add descriptive columns.</li>
-</ol>
-<pre><code class="language-sql">WITH cte AS (
+<p>I created a small canonical SQL layer using views and CTEs for shared business metrics. This replaced BOXI variables and removed one off definitions. I also moved away from hard coded variables such as <code>warehouse_1</code>, <code>warehouse_2</code> by using dynamic groups in Report Builder, so new values appear automatically.</p>
+<h3>3. Clean SQL pattern</h3>
+<p>Aggregate the fact first by keys and date, then join dimensions for descriptions. This keeps queries readable and index friendly.</p>
+<pre><code class="language-sql">WITH fact_summary AS (
   SELECT
-  s.dim_customer_key,
-  s.dim_salesperson_key,
-  odate.year,
-  odate.month,
-  SUM(s.cases_sold) AS cases_sold
+    s.dim_customer_key,
+    s.dim_salesperson_key,
+    d.year,
+    d.month,
+    SUM(s.cases_sold) AS cases_sold
   FROM fact_sales s
-  JOIN dim_date odate
-  ON odate.dim_date_key = s.dim_order_date_key
-  WHERE odate.year = @year --parameter that lets the user pick the year
+  JOIN dim_date d
+    ON s.dim_order_date_key = d.dim_date_key
+  WHERE d.year = @year
+  GROUP BY
+    s.dim_customer_key,
+    s.dim_salesperson_key,
+    d.year,
+    d.month
 )
-
 SELECT
-c.customer_number,
-c.customer_name,
-u.full_name AS salesperson_name,
-cte.year,
-cte.month,
-cte.cases_sold
-FROM cte
+  c.customer_number,
+  c.customer_name,
+  u.full_name AS salesperson_name,
+  f.year,
+  f.month,
+  f.cases_sold
+FROM fact_summary f
 JOIN dim_customer c
-ON s.dim_customer_key = cte.dim_customer_key
+  ON f.dim_customer_key = c.dim_customer_key
 JOIN dim_user u
-ON u.dim_user_key = cte.dim_salesperson_key
+  ON f.dim_salesperson_key = u.dim_user_key;
 </code></pre>
-<p>Why this is cleaner:</p>
+<p>Why this works well:</p>
 <ul>
-<li>The <code>GROUP BY</code> is short (keys + date), readable, and the QEP will make use of indexes[^1].</li>
+<li>Short, predictable <code>GROUP BY</code> on keys and date.</li>
+<li>Adding a new descriptive field is just another column from a dimension.</li>
+<li>Execution plans benefit from key indexes on the fact.</li>
 </ul>
-<p>[^1]: dim_column_keys on the fact are indexed since we know users will use them to join tables.</p>
-<ul>
-<li>Adding a descriptive field later is trivial (just select another dim_table.column).</li>
-</ul>
-<h3>Parameterising Reports</h3>
-<p>We had a lot of reports which weren't as parameterised as they should be. i.e. A sales report which always showed this month vs last month. Instead of this the powerBI report will:</p>
-<ul>
-<li>Let the user pick the year and month they want to see (i.e. 2024 - January)</li>
-<li>In the SQL work out the previous month</li>
-<li>Instead of columns saying this month, last month have them display the year and month, in this case (Sales 2024 - Jan) and (Sales 2023 - Dec)</li>
-</ul>
-<h3>Validating Reports</h3>
-<p>In order to make sure reports matched I would use python + pandas. This allows me to quickly check figures, once I became experienced with how to structure queries / how report builder works I would be able to spend little time on this step.</p>
-<pre><code class="language-py">
-pbi = pd.read_excel("pbi_report.xlsx", index=["customer_number", "year","month"])
-boxi = pd.read_excel("boxi_report.xlsx", index=["customer_number", "year","month"])
+<h3>4. Parameterised reports</h3>
+<p>Legacy reports were often fixed to a period such as this month versus last month.<br>
+Each paginated report was rebuilt with parameters so a user can pick any period. SQL calculates the comparison period and headers render with real month and year, for example <code>Sales 2024 Jan</code> and <code>Sales 2023 Dec</code>.<br>
+This reduced duplicate schedules and improved self service.</p>
+<h3>5. Validation with Python</h3>
+<p>I wrote a small Pandas utility to compare BOXI and PBI outputs by shape, columns, and totals. Finance signed off each report once the diff was empty.</p>
+<pre><code class="language-python">from mylibrary import check_reports
 
-# check these are both empty
-in_pbi_missing_in_boxi = [rec for rec in pbi.index if rec not in boxi.index]
-in_boxi_missing_in_pbi = [rec for rec in boxi.index if rec not in pbi.index]
-
-# if both the above lists are empty then shape should match
-assert pbi.shape == boxi.shape
-
-# make sure column names match
-col_in_boxi_missing_in_pbi = [rec for rec in pbi if rec not in boxi]
-col_in_pbi_missing_in_boxi = [rec for rec in boxi if rec not in pbi]
-
-# if columns are in same order and have different names then easy to update names
-boxi_renamings = {old: new for old, new in zip(boxi, pbi)}
-boxi = boxi.rename(boxi_renamings, axis=1)
-
-# sort columns, index for pd.compare
-pbi = pbi.sort_index(axis=1).sort_index(axis=0)
-boxi = boxi.sort_index(axis=1).sort_index(axis=0)
-
-# check if any differences / why they exist
-diffs = boxi.compare(pbi, result_names=("boxi", "pbi"))
-</code></pre>
-<p>I moved this into my custom library, so I wouldn't need to write this logic manually.</p>
-<pre><code class="language-py">from mylibrary import check_reports
-
-pbi = pd.read_excel("pbi_report.xlsx", index=["customer_number", "year","month"])
-boxi = pd.read_excel("boxi_report.xlsx", index=["customer_number", "year","month"])
+pbi = pd.read_excel("pbi_report.xlsx", index=["customer_number","year","month"])
+boxi = pd.read_excel("boxi_report.xlsx", index=["customer_number","year","month"])
 
 result = check_reports(pbi, boxi)
-
-# check result object to see differences, i.e. column names
-result.get("column_differences")
-
-# or get the suggested renamings (based on column order)
-result.get("column_order_renamings")
+result.summary()  # shows shape, column, and total differences
 </code></pre>
-<svg id="mermaid-0" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="flowchart" style="max-width: 1419.21875px;" viewBox="0 0 1419.21875 174" role="graphics-document document" aria-roledescription="flowchart-v2"><style>#mermaid-0{font-family:arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-0 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-0 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-0 .error-icon{fill:#552222;}#mermaid-0 .error-text{fill:#552222;stroke:#552222;}#mermaid-0 .edge-thickness-normal{stroke-width:1px;}#mermaid-0 .edge-thickness-thick{stroke-width:3.5px;}#mermaid-0 .edge-pattern-solid{stroke-dasharray:0;}#mermaid-0 .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-0 .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-0 .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-0 .marker{fill:#333333;stroke:#333333;}#mermaid-0 .marker.cross{stroke:#333333;}#mermaid-0 svg{font-family:arial,sans-serif;font-size:16px;}#mermaid-0 p{margin:0;}#mermaid-0 .label{font-family:arial,sans-serif;color:#333;}#mermaid-0 .cluster-label text{fill:#333;}#mermaid-0 .cluster-label span{color:#333;}#mermaid-0 .cluster-label span p{background-color:transparent;}#mermaid-0 .label text,#mermaid-0 span{fill:#333;color:#333;}#mermaid-0 .node rect,#mermaid-0 .node circle,#mermaid-0 .node ellipse,#mermaid-0 .node polygon,#mermaid-0 .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-0 .rough-node .label text,#mermaid-0 .node .label text,#mermaid-0 .image-shape .label,#mermaid-0 .icon-shape .label{text-anchor:middle;}#mermaid-0 .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-0 .rough-node .label,#mermaid-0 .node .label,#mermaid-0 .image-shape .label,#mermaid-0 .icon-shape .label{text-align:center;}#mermaid-0 .node.clickable{cursor:pointer;}#mermaid-0 .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-0 .arrowheadPath{fill:#333333;}#mermaid-0 .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-0 .flowchart-link{stroke:#333333;fill:none;}#mermaid-0 .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-0 .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-0 .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-0 .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-0 .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-0 .cluster text{fill:#333;}#mermaid-0 .cluster span{color:#333;}#mermaid-0 div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-0 .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-0 rect.text{fill:none;stroke-width:0;}#mermaid-0 .icon-shape,#mermaid-0 .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-0 .icon-shape p,#mermaid-0 .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-0 .icon-shape rect,#mermaid-0 .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-0 .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-0 .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-0 :root{--mermaid-font-family:arial,sans-serif;}</style><g><marker id="mermaid-0_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-0_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-0_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="mermaid-0_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="mermaid-0_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="mermaid-0_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path d="M212.938,35L217.104,35C221.271,35,229.604,35,239.597,36.955C249.59,38.909,261.243,42.819,267.069,44.773L272.895,46.728" id="L_A_C_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_C_0" data-points="W3sieCI6MjEyLjkzNzUsInkiOjM1fSx7IngiOjIzNy45Mzc1LCJ5IjozNX0seyJ4IjoyNzYuNjg3NSwieSI6NDh9XQ==" marker-end="url(#mermaid-0_flowchart-v2-pointEnd)"></path><path d="M206.719,139L211.922,139C217.125,139,227.531,139,238.561,137.045C249.59,135.091,261.243,131.181,267.069,129.227L272.895,127.272" id="L_B_C_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_C_0" data-points="W3sieCI6MjA2LjcxODc1LCJ5IjoxMzl9LHsieCI6MjM3LjkzNzUsInkiOjEzOX0seyJ4IjoyNzYuNjg3NSwieSI6MTI2fV0=" marker-end="url(#mermaid-0_flowchart-v2-pointEnd)"></path><path d="M522.938,87L527.104,87C531.271,87,539.604,87,547.271,87C554.938,87,561.938,87,565.438,87L568.938,87" id="L_C_D_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_C_D_0" data-points="W3sieCI6NTIyLjkzNzUsInkiOjg3fSx7IngiOjU0Ny45Mzc1LCJ5Ijo4N30seyJ4Ijo1NzIuOTM3NSwieSI6ODd9XQ==" marker-end="url(#mermaid-0_flowchart-v2-pointEnd)"></path><path d="M791.219,87L795.385,87C799.552,87,807.885,87,815.552,87C823.219,87,830.219,87,833.719,87L837.219,87" id="L_D_E_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D_E_0" data-points="W3sieCI6NzkxLjIxODc1LCJ5Ijo4N30seyJ4Ijo4MTYuMjE4NzUsInkiOjg3fSx7IngiOjg0MS4yMTg3NSwieSI6ODd9XQ==" marker-end="url(#mermaid-0_flowchart-v2-pointEnd)"></path><path d="M1101.219,87L1105.385,87C1109.552,87,1117.885,87,1125.552,87C1133.219,87,1140.219,87,1143.719,87L1147.219,87" id="L_E_F_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_E_F_0" data-points="W3sieCI6MTEwMS4yMTg3NSwieSI6ODd9LHsieCI6MTEyNi4yMTg3NSwieSI6ODd9LHsieCI6MTE1MS4yMTg3NSwieSI6ODd9XQ==" marker-end="url(#mermaid-0_flowchart-v2-pointEnd)"></path></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_A_C_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_B_C_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_C_D_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_D_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_E_F_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="flowchart-A-0" transform="translate(110.46875, 35)"><rect class="basic label-container" style="" x="-102.46875" y="-27" width="204.9375" height="54"></rect><g class="label" style="" transform="translate(-72.46875, -12)"><rect></rect><foreignObject width="144.9375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>BOXI Output (Excel)</p></span></div></foreignObject></g></g><g class="node default" id="flowchart-B-1" transform="translate(110.46875, 139)"><rect class="basic label-container" style="" x="-96.25" y="-27" width="192.5" height="54"></rect><g class="label" style="" transform="translate(-66.25, -12)"><rect></rect><foreignObject width="132.5" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>PBI Output (Excel)</p></span></div></foreignObject></g></g><g class="node default" id="flowchart-C-2" transform="translate(392.9375, 87)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"></rect><g class="label" style="" transform="translate(-100, -24)"><rect></rect><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel"><p>check_reports() Python Function</p></span></div></foreignObject></g></g><g class="node default" id="flowchart-D-8" transform="translate(682.078125, 87)"><rect class="basic label-container" style="" x="-109.140625" y="-27" width="218.28125" height="54"></rect><g class="label" style="" transform="translate(-79.140625, -12)"><rect></rect><foreignObject width="158.28125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Compare DataFrames</p></span></div></foreignObject></g></g><g class="node default" id="flowchart-E-10" transform="translate(971.21875, 87)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"></rect><g class="label" style="" transform="translate(-100, -24)"><rect></rect><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel"><p>Highlight Differences (shape, columns, totals)</p></span></div></foreignObject></g></g><g class="node default" id="flowchart-F-12" transform="translate(1281.21875, 87)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"></rect><g class="label" style="" transform="translate(-100, -24)"><rect></rect><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel"><p>Validation Passed/Failed Output</p></span></div></foreignObject></g></g></g></g></g></svg>
-<h3>Scheduling Reports</h3>
-<p>BOXI used to have a major issue. We had so many schedules with no way to easily audit them. In order to improve on this I decided to make use of <strong>dynamic per recipient</strong> schedules.</p>
+<h3>6. Dynamic scheduling</h3>
+<p>BOXI schedules were static and hard to maintain. In Power BI I introduced dynamic per recipient schedules.</p>
 <ul>
-<li>BOXI schedules were defined as an instance. On every schedule instance you could add / alter users receiving the schedule. This mean if a new salesperson started someone would have to go into every sales schedule and add the new salesperson onto the schedule.</li>
-<li>In PowerBI I setup a <strong>users</strong> semantic model which refreshes daily. The semantic model had no relationships, every table has the same key <code>user_id</code> which contained information for the schedule to be setup. The query for the <strong>dim_salespersons</strong> would look like the below.</li>
+<li>A small Users semantic model refreshed daily with <code>user_id</code>, name, and email.</li>
+<li>Each row drove a parameterised run that filtered to that person’s data and emailed the result.</li>
+<li>New staff appeared automatically once added in the ERP.</li>
+<li>Managers received fixed schedules where a dynamic approach was not suitable.</li>
 </ul>
-<pre><code class="language-sql">SELECT
-u.user_id AS salesperson_id,
-u.user_full_name AS salesperson_full_name,
-u.user_email_address AS salesperson_email_address
-FROM dim_customer c
-JOIN dim_user u
-ON u.dim_user_key = c.dim_salesperson_key
-WHERE c.is_active_customer = 1
-</code></pre>
+<h2>Results</h2>
 <ul>
-<li>
-<p>Then a schedule would be setup to go to every row in this table. It would be sent to every record's <code>salesperson_email_address</code> and the <code>salesperson_id</code> is passed through to the report as a parameter to only show sales of customers for the given salesperson.</p>
-</li>
-<li>
-<p>There are several benefits to this</p>
+<li>100+ paginated reports rebuilt on shared datasets.</li>
+<li>Change requests completed in days instead of weeks.</li>
+<li>Critical data warehouse issues identified and fixed during rebuild.</li>
+<li>Dynamic schedules removed manual maintenance and improved auditability.</li>
+<li>Finance validated that totals and outputs match the prior estate.</li>
+</ul>
+<h2>Lessons learned</h2>
 <ul>
-<li>Easy to audit who is receiving schedules</li>
-<li>When a new salesperson joins as soon as they are assigned customers in our ERP system they will start receiving reports (no manual intervention needed)</li>
+<li>A thin canonical SQL layer removes drift and speeds up changes.</li>
+<li>Aggregate first, then join dimensions keeps queries simple and fast.</li>
+<li>Parameterised templates reduce schedule sprawl and improve usability.</li>
+<li>Lightweight validation scripts build trust and shorten approvals.</li>
 </ul>
-</li>
-<li>
-<p>Some reports have 2-3 dynamic schedules and 1 manual schedule instance with users that are unlikely to change, often these were managers who needed the report but not every manager wanted it which prevented the use of dynamic schedules.</p>
-</li>
-<li>
-<p>For customer facing schedules I made sure to copy the BOXI schedule exactly including the email body. We communicated with customers we're changing our internal tooling but they'd receive the same schedules.</p>
-</li>
-</ul>
-<svg id="mermaid-1" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="max-width: 1516px;" viewBox="-50 -10 1516 391" role="graphics-document document" aria-roledescription="sequence"><g><rect x="1266" y="305" fill="#eaeaea" stroke="#666" width="150" height="65" name="Email" rx="3" ry="3" class="actor actor-bottom"></rect><text x="1341" y="337.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="1341" dy="0">Email Delivery</tspan></text></g><g><rect x="1007.5" y="305" fill="#eaeaea" stroke="#666" width="153" height="65" name="Schedule" rx="3" ry="3" class="actor actor-bottom"></rect><text x="1084" y="337.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="1084" dy="0">Dynamic Schedule</tspan></text></g><g><rect x="743" y="305" fill="#eaeaea" stroke="#666" width="150" height="65" name="RDL" rx="3" ry="3" class="actor actor-bottom"></rect><text x="818" y="337.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="818" dy="0">Paginated Report</tspan></text></g><g><rect x="516" y="305" fill="#eaeaea" stroke="#666" width="150" height="65" name="Dataset" rx="3" ry="3" class="actor actor-bottom"></rect><text x="591" y="337.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="591" dy="0">Shared Dataset</tspan></text></g><g><rect x="238" y="305" fill="#eaeaea" stroke="#666" width="150" height="65" name="PowerBI" rx="3" ry="3" class="actor actor-bottom"></rect><text x="313" y="337.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="313" dy="0">Power BI Service</tspan></text></g><g><rect x="0" y="305" fill="#eaeaea" stroke="#666" width="150" height="65" name="User" rx="3" ry="3" class="actor actor-bottom"></rect><text x="75" y="337.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="75" dy="0">Business User</tspan></text></g><g><line id="actor5" x1="1341" y1="65" x2="1341" y2="305" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="Email"></line><g id="root-5"><rect x="1266" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="Email" rx="3" ry="3" class="actor actor-top"></rect><text x="1341" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="1341" dy="0">Email Delivery</tspan></text></g></g><g><line id="actor4" x1="1084" y1="65" x2="1084" y2="305" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="Schedule"></line><g id="root-4"><rect x="1007.5" y="0" fill="#eaeaea" stroke="#666" width="153" height="65" name="Schedule" rx="3" ry="3" class="actor actor-top"></rect><text x="1084" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="1084" dy="0">Dynamic Schedule</tspan></text></g></g><g><line id="actor3" x1="818" y1="65" x2="818" y2="305" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="RDL"></line><g id="root-3"><rect x="743" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="RDL" rx="3" ry="3" class="actor actor-top"></rect><text x="818" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="818" dy="0">Paginated Report</tspan></text></g></g><g><line id="actor2" x1="591" y1="65" x2="591" y2="305" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="Dataset"></line><g id="root-2"><rect x="516" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="Dataset" rx="3" ry="3" class="actor actor-top"></rect><text x="591" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="591" dy="0">Shared Dataset</tspan></text></g></g><g><line id="actor1" x1="313" y1="65" x2="313" y2="305" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="PowerBI"></line><g id="root-1"><rect x="238" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="PowerBI" rx="3" ry="3" class="actor actor-top"></rect><text x="313" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="313" dy="0">Power BI Service</tspan></text></g></g><g><line id="actor0" x1="75" y1="65" x2="75" y2="305" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="User"></line><g id="root-0"><rect x="0" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="User" rx="3" ry="3" class="actor actor-top"></rect><text x="75" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400; font-family: arial, sans-serif;"><tspan x="75" dy="0">Business User</tspan></text></g></g><style>#mermaid-1{font-family:arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-1 .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-1 .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-1 .error-icon{fill:#552222;}#mermaid-1 .error-text{fill:#552222;stroke:#552222;}#mermaid-1 .edge-thickness-normal{stroke-width:1px;}#mermaid-1 .edge-thickness-thick{stroke-width:3.5px;}#mermaid-1 .edge-pattern-solid{stroke-dasharray:0;}#mermaid-1 .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-1 .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-1 .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-1 .marker{fill:#333333;stroke:#333333;}#mermaid-1 .marker.cross{stroke:#333333;}#mermaid-1 svg{font-family:arial,sans-serif;font-size:16px;}#mermaid-1 p{margin:0;}#mermaid-1 .actor{stroke:hsl(259.6261682243, 59.7765363128%, 87.9019607843%);fill:#ECECFF;}#mermaid-1 text.actor>tspan{fill:black;stroke:none;}#mermaid-1 .actor-line{stroke:hsl(259.6261682243, 59.7765363128%, 87.9019607843%);}#mermaid-1 .innerArc{stroke-width:1.5;stroke-dasharray:none;}#mermaid-1 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#333;}#mermaid-1 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#333;}#mermaid-1 #arrowhead path{fill:#333;stroke:#333;}#mermaid-1 .sequenceNumber{fill:white;}#mermaid-1 #sequencenumber{fill:#333;}#mermaid-1 #crosshead path{fill:#333;stroke:#333;}#mermaid-1 .messageText{fill:#333;stroke:none;}#mermaid-1 .labelBox{stroke:hsl(259.6261682243, 59.7765363128%, 87.9019607843%);fill:#ECECFF;}#mermaid-1 .labelText,#mermaid-1 .labelText>tspan{fill:black;stroke:none;}#mermaid-1 .loopText,#mermaid-1 .loopText>tspan{fill:black;stroke:none;}#mermaid-1 .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:hsl(259.6261682243, 59.7765363128%, 87.9019607843%);fill:hsl(259.6261682243, 59.7765363128%, 87.9019607843%);}#mermaid-1 .note{stroke:#aaaa33;fill:#fff5ad;}#mermaid-1 .noteText,#mermaid-1 .noteText>tspan{fill:black;stroke:none;}#mermaid-1 .activation0{fill:#f4f4f4;stroke:#666;}#mermaid-1 .activation1{fill:#f4f4f4;stroke:#666;}#mermaid-1 .activation2{fill:#f4f4f4;stroke:#666;}#mermaid-1 .actorPopupMenu{position:absolute;}#mermaid-1 .actorPopupMenuPanel{position:absolute;fill:#ECECFF;box-shadow:0px 8px 16px 0px rgba(0,0,0,0.2);filter:drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));}#mermaid-1 .actor-man line{stroke:hsl(259.6261682243, 59.7765363128%, 87.9019607843%);fill:#ECECFF;}#mermaid-1 .actor-man circle,#mermaid-1 line{stroke:hsl(259.6261682243, 59.7765363128%, 87.9019607843%);fill:#ECECFF;stroke-width:2px;}#mermaid-1 :root{--mermaid-font-family:arial,sans-serif;}</style><g></g><defs><symbol id="computer" width="24" height="24"><path transform="scale(.5)" d="M2 2v13h20v-13h-20zm18 11h-16v-9h16v9zm-10.228 6l.466-1h3.524l.467 1h-4.457zm14.228 3h-24l2-6h2.104l-1.33 4h18.45l-1.297-4h2.073l2 6zm-5-10h-14v-7h14v7z"></path></symbol></defs><defs><symbol id="database" fill-rule="evenodd" clip-rule="evenodd"><path transform="scale(.5)" d="M12.258.001l.256.004.255.005.253.008.251.01.249.012.247.015.246.016.242.019.241.02.239.023.236.024.233.027.231.028.229.031.225.032.223.034.22.036.217.038.214.04.211.041.208.043.205.045.201.046.198.048.194.05.191.051.187.053.183.054.18.056.175.057.172.059.168.06.163.061.16.063.155.064.15.066.074.033.073.033.071.034.07.034.069.035.068.035.067.035.066.035.064.036.064.036.062.036.06.036.06.037.058.037.058.037.055.038.055.038.053.038.052.038.051.039.05.039.048.039.047.039.045.04.044.04.043.04.041.04.04.041.039.041.037.041.036.041.034.041.033.042.032.042.03.042.029.042.027.042.026.043.024.043.023.043.021.043.02.043.018.044.017.043.015.044.013.044.012.044.011.045.009.044.007.045.006.045.004.045.002.045.001.045v17l-.001.045-.002.045-.004.045-.006.045-.007.045-.009.044-.011.045-.012.044-.013.044-.015.044-.017.043-.018.044-.02.043-.021.043-.023.043-.024.043-.026.043-.027.042-.029.042-.03.042-.032.042-.033.042-.034.041-.036.041-.037.041-.039.041-.04.041-.041.04-.043.04-.044.04-.045.04-.047.039-.048.039-.05.039-.051.039-.052.038-.053.038-.055.038-.055.038-.058.037-.058.037-.06.037-.06.036-.062.036-.064.036-.064.036-.066.035-.067.035-.068.035-.069.035-.07.034-.071.034-.073.033-.074.033-.15.066-.155.064-.16.063-.163.061-.168.06-.172.059-.175.057-.18.056-.183.054-.187.053-.191.051-.194.05-.198.048-.201.046-.205.045-.208.043-.211.041-.214.04-.217.038-.22.036-.223.034-.225.032-.229.031-.231.028-.233.027-.236.024-.239.023-.241.02-.242.019-.246.016-.247.015-.249.012-.251.01-.253.008-.255.005-.256.004-.258.001-.258-.001-.256-.004-.255-.005-.253-.008-.251-.01-.249-.012-.247-.015-.245-.016-.243-.019-.241-.02-.238-.023-.236-.024-.234-.027-.231-.028-.228-.031-.226-.032-.223-.034-.22-.036-.217-.038-.214-.04-.211-.041-.208-.043-.204-.045-.201-.046-.198-.048-.195-.05-.19-.051-.187-.053-.184-.054-.179-.056-.176-.057-.172-.059-.167-.06-.164-.061-.159-.063-.155-.064-.151-.066-.074-.033-.072-.033-.072-.034-.07-.034-.069-.035-.068-.035-.067-.035-.066-.035-.064-.036-.063-.036-.062-.036-.061-.036-.06-.037-.058-.037-.057-.037-.056-.038-.055-.038-.053-.038-.052-.038-.051-.039-.049-.039-.049-.039-.046-.039-.046-.04-.044-.04-.043-.04-.041-.04-.04-.041-.039-.041-.037-.041-.036-.041-.034-.041-.033-.042-.032-.042-.03-.042-.029-.042-.027-.042-.026-.043-.024-.043-.023-.043-.021-.043-.02-.043-.018-.044-.017-.043-.015-.044-.013-.044-.012-.044-.011-.045-.009-.044-.007-.045-.006-.045-.004-.045-.002-.045-.001-.045v-17l.001-.045.002-.045.004-.045.006-.045.007-.045.009-.044.011-.045.012-.044.013-.044.015-.044.017-.043.018-.044.02-.043.021-.043.023-.043.024-.043.026-.043.027-.042.029-.042.03-.042.032-.042.033-.042.034-.041.036-.041.037-.041.039-.041.04-.041.041-.04.043-.04.044-.04.046-.04.046-.039.049-.039.049-.039.051-.039.052-.038.053-.038.055-.038.056-.038.057-.037.058-.037.06-.037.061-.036.062-.036.063-.036.064-.036.066-.035.067-.035.068-.035.069-.035.07-.034.072-.034.072-.033.074-.033.151-.066.155-.064.159-.063.164-.061.167-.06.172-.059.176-.057.179-.056.184-.054.187-.053.19-.051.195-.05.198-.048.201-.046.204-.045.208-.043.211-.041.214-.04.217-.038.22-.036.223-.034.226-.032.228-.031.231-.028.234-.027.236-.024.238-.023.241-.02.243-.019.245-.016.247-.015.249-.012.251-.01.253-.008.255-.005.256-.004.258-.001.258.001zm-9.258 20.499v.01l.001.021.003.021.004.022.005.021.006.022.007.022.009.023.01.022.011.023.012.023.013.023.015.023.016.024.017.023.018.024.019.024.021.024.022.025.023.024.024.025.052.049.056.05.061.051.066.051.07.051.075.051.079.052.084.052.088.052.092.052.097.052.102.051.105.052.11.052.114.051.119.051.123.051.127.05.131.05.135.05.139.048.144.049.147.047.152.047.155.047.16.045.163.045.167.043.171.043.176.041.178.041.183.039.187.039.19.037.194.035.197.035.202.033.204.031.209.03.212.029.216.027.219.025.222.024.226.021.23.02.233.018.236.016.24.015.243.012.246.01.249.008.253.005.256.004.259.001.26-.001.257-.004.254-.005.25-.008.247-.011.244-.012.241-.014.237-.016.233-.018.231-.021.226-.021.224-.024.22-.026.216-.027.212-.028.21-.031.205-.031.202-.034.198-.034.194-.036.191-.037.187-.039.183-.04.179-.04.175-.042.172-.043.168-.044.163-.045.16-.046.155-.046.152-.047.148-.048.143-.049.139-.049.136-.05.131-.05.126-.05.123-.051.118-.052.114-.051.11-.052.106-.052.101-.052.096-.052.092-.052.088-.053.083-.051.079-.052.074-.052.07-.051.065-.051.06-.051.056-.05.051-.05.023-.024.023-.025.021-.024.02-.024.019-.024.018-.024.017-.024.015-.023.014-.024.013-.023.012-.023.01-.023.01-.022.008-.022.006-.022.006-.022.004-.022.004-.021.001-.021.001-.021v-4.127l-.077.055-.08.053-.083.054-.085.053-.087.052-.09.052-.093.051-.095.05-.097.05-.1.049-.102.049-.105.048-.106.047-.109.047-.111.046-.114.045-.115.045-.118.044-.12.043-.122.042-.124.042-.126.041-.128.04-.13.04-.132.038-.134.038-.135.037-.138.037-.139.035-.142.035-.143.034-.144.033-.147.032-.148.031-.15.03-.151.03-.153.029-.154.027-.156.027-.158.026-.159.025-.161.024-.162.023-.163.022-.165.021-.166.02-.167.019-.169.018-.169.017-.171.016-.173.015-.173.014-.175.013-.175.012-.177.011-.178.01-.179.008-.179.008-.181.006-.182.005-.182.004-.184.003-.184.002h-.37l-.184-.002-.184-.003-.182-.004-.182-.005-.181-.006-.179-.008-.179-.008-.178-.01-.176-.011-.176-.012-.175-.013-.173-.014-.172-.015-.171-.016-.17-.017-.169-.018-.167-.019-.166-.02-.165-.021-.163-.022-.162-.023-.161-.024-.159-.025-.157-.026-.156-.027-.155-.027-.153-.029-.151-.03-.15-.03-.148-.031-.146-.032-.145-.033-.143-.034-.141-.035-.14-.035-.137-.037-.136-.037-.134-.038-.132-.038-.13-.04-.128-.04-.126-.041-.124-.042-.122-.042-.12-.044-.117-.043-.116-.045-.113-.045-.112-.046-.109-.047-.106-.047-.105-.048-.102-.049-.1-.049-.097-.05-.095-.05-.093-.052-.09-.051-.087-.052-.085-.053-.083-.054-.08-.054-.077-.054v4.127zm0-5.654v.011l.001.021.003.021.004.021.005.022.006.022.007.022.009.022.01.022.011.023.012.023.013.023.015.024.016.023.017.024.018.024.019.024.021.024.022.024.023.025.024.024.052.05.056.05.061.05.066.051.07.051.075.052.079.051.084.052.088.052.092.052.097.052.102.052.105.052.11.051.114.051.119.052.123.05.127.051.131.05.135.049.139.049.144.048.147.048.152.047.155.046.16.045.163.045.167.044.171.042.176.042.178.04.183.04.187.038.19.037.194.036.197.034.202.033.204.032.209.03.212.028.216.027.219.025.222.024.226.022.23.02.233.018.236.016.24.014.243.012.246.01.249.008.253.006.256.003.259.001.26-.001.257-.003.254-.006.25-.008.247-.01.244-.012.241-.015.237-.016.233-.018.231-.02.226-.022.224-.024.22-.025.216-.027.212-.029.21-.03.205-.032.202-.033.198-.035.194-.036.191-.037.187-.039.183-.039.179-.041.175-.042.172-.043.168-.044.163-.045.16-.045.155-.047.152-.047.148-.048.143-.048.139-.05.136-.049.131-.05.126-.051.123-.051.118-.051.114-.052.11-.052.106-.052.101-.052.096-.052.092-.052.088-.052.083-.052.079-.052.074-.051.07-.052.065-.051.06-.05.056-.051.051-.049.023-.025.023-.024.021-.025.02-.024.019-.024.018-.024.017-.024.015-.023.014-.023.013-.024.012-.022.01-.023.01-.023.008-.022.006-.022.006-.022.004-.021.004-.022.001-.021.001-.021v-4.139l-.077.054-.08.054-.083.054-.085.052-.087.053-.09.051-.093.051-.095.051-.097.05-.1.049-.102.049-.105.048-.106.047-.109.047-.111.046-.114.045-.115.044-.118.044-.12.044-.122.042-.124.042-.126.041-.128.04-.13.039-.132.039-.134.038-.135.037-.138.036-.139.036-.142.035-.143.033-.144.033-.147.033-.148.031-.15.03-.151.03-.153.028-.154.028-.156.027-.158.026-.159.025-.161.024-.162.023-.163.022-.165.021-.166.02-.167.019-.169.018-.169.017-.171.016-.173.015-.173.014-.175.013-.175.012-.177.011-.178.009-.179.009-.179.007-.181.007-.182.005-.182.004-.184.003-.184.002h-.37l-.184-.002-.184-.003-.182-.004-.182-.005-.181-.007-.179-.007-.179-.009-.178-.009-.176-.011-.176-.012-.175-.013-.173-.014-.172-.015-.171-.016-.17-.017-.169-.018-.167-.019-.166-.02-.165-.021-.163-.022-.162-.023-.161-.024-.159-.025-.157-.026-.156-.027-.155-.028-.153-.028-.151-.03-.15-.03-.148-.031-.146-.033-.145-.033-.143-.033-.141-.035-.14-.036-.137-.036-.136-.037-.134-.038-.132-.039-.13-.039-.128-.04-.126-.041-.124-.042-.122-.043-.12-.043-.117-.044-.116-.044-.113-.046-.112-.046-.109-.046-.106-.047-.105-.048-.102-.049-.1-.049-.097-.05-.095-.051-.093-.051-.09-.051-.087-.053-.085-.052-.083-.054-.08-.054-.077-.054v4.139zm0-5.666v.011l.001.02.003.022.004.021.005.022.006.021.007.022.009.023.01.022.011.023.012.023.013.023.015.023.016.024.017.024.018.023.019.024.021.025.022.024.023.024.024.025.052.05.056.05.061.05.066.051.07.051.075.052.079.051.084.052.088.052.092.052.097.052.102.052.105.051.11.052.114.051.119.051.123.051.127.05.131.05.135.05.139.049.144.048.147.048.152.047.155.046.16.045.163.045.167.043.171.043.176.042.178.04.183.04.187.038.19.037.194.036.197.034.202.033.204.032.209.03.212.028.216.027.219.025.222.024.226.021.23.02.233.018.236.017.24.014.243.012.246.01.249.008.253.006.256.003.259.001.26-.001.257-.003.254-.006.25-.008.247-.01.244-.013.241-.014.237-.016.233-.018.231-.02.226-.022.224-.024.22-.025.216-.027.212-.029.21-.03.205-.032.202-.033.198-.035.194-.036.191-.037.187-.039.183-.039.179-.041.175-.042.172-.043.168-.044.163-.045.16-.045.155-.047.152-.047.148-.048.143-.049.139-.049.136-.049.131-.051.126-.05.123-.051.118-.052.114-.051.11-.052.106-.052.101-.052.096-.052.092-.052.088-.052.083-.052.079-.052.074-.052.07-.051.065-.051.06-.051.056-.05.051-.049.023-.025.023-.025.021-.024.02-.024.019-.024.018-.024.017-.024.015-.023.014-.024.013-.023.012-.023.01-.022.01-.023.008-.022.006-.022.006-.022.004-.022.004-.021.001-.021.001-.021v-4.153l-.077.054-.08.054-.083.053-.085.053-.087.053-.09.051-.093.051-.095.051-.097.05-.1.049-.102.048-.105.048-.106.048-.109.046-.111.046-.114.046-.115.044-.118.044-.12.043-.122.043-.124.042-.126.041-.128.04-.13.039-.132.039-.134.038-.135.037-.138.036-.139.036-.142.034-.143.034-.144.033-.147.032-.148.032-.15.03-.151.03-.153.028-.154.028-.156.027-.158.026-.159.024-.161.024-.162.023-.163.023-.165.021-.166.02-.167.019-.169.018-.169.017-.171.016-.173.015-.173.014-.175.013-.175.012-.177.01-.178.01-.179.009-.179.007-.181.006-.182.006-.182.004-.184.003-.184.001-.185.001-.185-.001-.184-.001-.184-.003-.182-.004-.182-.006-.181-.006-.179-.007-.179-.009-.178-.01-.176-.01-.176-.012-.175-.013-.173-.014-.172-.015-.171-.016-.17-.017-.169-.018-.167-.019-.166-.02-.165-.021-.163-.023-.162-.023-.161-.024-.159-.024-.157-.026-.156-.027-.155-.028-.153-.028-.151-.03-.15-.03-.148-.032-.146-.032-.145-.033-.143-.034-.141-.034-.14-.036-.137-.036-.136-.037-.134-.038-.132-.039-.13-.039-.128-.041-.126-.041-.124-.041-.122-.043-.12-.043-.117-.044-.116-.044-.113-.046-.112-.046-.109-.046-.106-.048-.105-.048-.102-.048-.1-.05-.097-.049-.095-.051-.093-.051-.09-.052-.087-.052-.085-.053-.083-.053-.08-.054-.077-.054v4.153zm8.74-8.179l-.257.004-.254.005-.25.008-.247.011-.244.012-.241.014-.237.016-.233.018-.231.021-.226.022-.224.023-.22.026-.216.027-.212.028-.21.031-.205.032-.202.033-.198.034-.194.036-.191.038-.187.038-.183.04-.179.041-.175.042-.172.043-.168.043-.163.045-.16.046-.155.046-.152.048-.148.048-.143.048-.139.049-.136.05-.131.05-.126.051-.123.051-.118.051-.114.052-.11.052-.106.052-.101.052-.096.052-.092.052-.088.052-.083.052-.079.052-.074.051-.07.052-.065.051-.06.05-.056.05-.051.05-.023.025-.023.024-.021.024-.02.025-.019.024-.018.024-.017.023-.015.024-.014.023-.013.023-.012.023-.01.023-.01.022-.008.022-.006.023-.006.021-.004.022-.004.021-.001.021-.001.021.001.021.001.021.004.021.004.022.006.021.006.023.008.022.01.022.01.023.012.023.013.023.014.023.015.024.017.023.018.024.019.024.02.025.021.024.023.024.023.025.051.05.056.05.06.05.065.051.07.052.074.051.079.052.083.052.088.052.092.052.096.052.101.052.106.052.11.052.114.052.118.051.123.051.126.051.131.05.136.05.139.049.143.048.148.048.152.048.155.046.16.046.163.045.168.043.172.043.175.042.179.041.183.04.187.038.191.038.194.036.198.034.202.033.205.032.21.031.212.028.216.027.22.026.224.023.226.022.231.021.233.018.237.016.241.014.244.012.247.011.25.008.254.005.257.004.26.001.26-.001.257-.004.254-.005.25-.008.247-.011.244-.012.241-.014.237-.016.233-.018.231-.021.226-.022.224-.023.22-.026.216-.027.212-.028.21-.031.205-.032.202-.033.198-.034.194-.036.191-.038.187-.038.183-.04.179-.041.175-.042.172-.043.168-.043.163-.045.16-.046.155-.046.152-.048.148-.048.143-.048.139-.049.136-.05.131-.05.126-.051.123-.051.118-.051.114-.052.11-.052.106-.052.101-.052.096-.052.092-.052.088-.052.083-.052.079-.052.074-.051.07-.052.065-.051.06-.05.056-.05.051-.05.023-.025.023-.024.021-.024.02-.025.019-.024.018-.024.017-.023.015-.024.014-.023.013-.023.012-.023.01-.023.01-.022.008-.022.006-.023.006-.021.004-.022.004-.021.001-.021.001-.021-.001-.021-.001-.021-.004-.021-.004-.022-.006-.021-.006-.023-.008-.022-.01-.022-.01-.023-.012-.023-.013-.023-.014-.023-.015-.024-.017-.023-.018-.024-.019-.024-.02-.025-.021-.024-.023-.024-.023-.025-.051-.05-.056-.05-.06-.05-.065-.051-.07-.052-.074-.051-.079-.052-.083-.052-.088-.052-.092-.052-.096-.052-.101-.052-.106-.052-.11-.052-.114-.052-.118-.051-.123-.051-.126-.051-.131-.05-.136-.05-.139-.049-.143-.048-.148-.048-.152-.048-.155-.046-.16-.046-.163-.045-.168-.043-.172-.043-.175-.042-.179-.041-.183-.04-.187-.038-.191-.038-.194-.036-.198-.034-.202-.033-.205-.032-.21-.031-.212-.028-.216-.027-.22-.026-.224-.023-.226-.022-.231-.021-.233-.018-.237-.016-.241-.014-.244-.012-.247-.011-.25-.008-.254-.005-.257-.004-.26-.001-.26.001z"></path></symbol></defs><defs><symbol id="clock" width="24" height="24"><path transform="scale(.5)" d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.848 12.459c.202.038.202.333.001.372-1.907.361-6.045 1.111-6.547 1.111-.719 0-1.301-.582-1.301-1.301 0-.512.77-5.447 1.125-7.445.034-.192.312-.181.343.014l.985 6.238 5.394 1.011z"></path></symbol></defs><defs><marker id="arrowhead" refX="7.9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M -1 0 L 10 5 L 0 10 z"></path></marker></defs><defs><marker id="crosshead" markerWidth="15" markerHeight="8" orient="auto" refX="4" refY="4.5"><path fill="none" stroke="#000000" stroke-width="1pt" d="M 1,2 L 6,7 M 6,2 L 1,7" style="stroke-dasharray: 0, 0;"></path></marker></defs><defs><marker id="filled-head" refX="15.5" refY="7" markerWidth="20" markerHeight="28" orient="auto"><path d="M 18,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><defs><marker id="sequencenumber" refX="15" refY="15" markerWidth="60" markerHeight="40" orient="auto"><circle cx="15" cy="15" r="6"></circle></marker></defs><text x="193" y="80" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: arial, sans-serif; font-size: 16px; font-weight: 400;">Request "Sales Report"</text><line x1="76" y1="109" x2="309" y2="109" class="messageLine0" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" style="fill: none;"></line><line x1="76" y1="109" x2="76" y2="109" stroke-width="0" marker-start="url(#sequencenumber)"></line><text x="76" y="113" font-family="sans-serif" font-size="12px" text-anchor="middle" class="sequenceNumber">1</text><text x="451" y="124" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: arial, sans-serif; font-size: 16px; font-weight: 400;">Query data (with parameters)</text><line x1="314" y1="153" x2="587" y2="153" class="messageLine0" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" style="fill: none;"></line><line x1="314" y1="153" x2="314" y2="153" stroke-width="0" marker-start="url(#sequencenumber)"></line><text x="314" y="157" font-family="sans-serif" font-size="12px" text-anchor="middle" class="sequenceNumber">2</text><text x="703" y="168" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: arial, sans-serif; font-size: 16px; font-weight: 400;">Return filtered dataset</text><line x1="592" y1="197" x2="814" y2="197" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" style="stroke-dasharray: 3, 3; fill: none;"></line><line x1="592" y1="197" x2="592" y2="197" stroke-width="0" marker-start="url(#sequencenumber)"></line><text x="592" y="201" font-family="sans-serif" font-size="12px" text-anchor="middle" class="sequenceNumber">3</text><text x="950" y="212" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: arial, sans-serif; font-size: 16px; font-weight: 400;">Generate PDF/Excel output</text><line x1="819" y1="241" x2="1080" y2="241" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" style="stroke-dasharray: 3, 3; fill: none;"></line><line x1="819" y1="241" x2="819" y2="241" stroke-width="0" marker-start="url(#sequencenumber)"></line><text x="819" y="245" font-family="sans-serif" font-size="12px" text-anchor="middle" class="sequenceNumber">4</text><text x="1211" y="256" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-family: arial, sans-serif; font-size: 16px; font-weight: 400;">Deliver report to recipients</text><line x1="1085" y1="285" x2="1337" y2="285" class="messageLine1" stroke-width="2" stroke="none" marker-end="url(#arrowhead)" style="stroke-dasharray: 3, 3; fill: none;"></line><line x1="1085" y1="285" x2="1085" y2="285" stroke-width="0" marker-start="url(#sequencenumber)"></line><text x="1085" y="289" font-family="sans-serif" font-size="12px" text-anchor="middle" class="sequenceNumber">5</text></svg>
 <h2>Conclusion</h2>
-<p><strong>Result:</strong> The estate moved from ad-hoc, duplicated logic in BOXI to a governed, reusable Paginated layer on Power BI. Change requests now happen in <strong>days</strong>, not weeks. We can have confidence in reports because the SQL is written within the business from users who understand the business instead of an external team which don't understand the business well enough to build a solution for it (i.e. The BOXI universes).</p>
+<p>The migration replaced a fragile BOXI estate with a governed, reusable reporting layer in Power BI.<br>
+By standardising the logic, validating results, and automating delivery, reporting moved from reactive maintenance to a predictable and auditable process that the business can trust.</p>
