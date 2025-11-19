@@ -43,7 +43,8 @@ const BULLETS: Record<string, Bullet[]> = {
 
     certifications: [
       ["Mensa", "- Member of British Mensa"],
-      ["DP700", "- Microsoft Certified: Fabric Data Engineer Associate"]
+      ["DP700", "- Microsoft Certified: Fabric Data Engineer Associate"],
+      ["DP600", "- Microsoft Certified: Fabric Analytics Engineer Associate"]
     ],
 
     highlights: [
