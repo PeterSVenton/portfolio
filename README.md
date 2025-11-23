@@ -11,7 +11,7 @@
 - [x] Add Custom page for knowledge base linking the user to a screen that doesn't exist
 - [x] Add Custom page for knowledge base linking the user to an unreleased piece of content
 - [x] Add Custom page for knowledge base linking the user to an internal doc (render the page but put a warning that its internal for kb context)
-- [ ] Add a secret screen that knowledge base can link to if the user specifically asks for it
+- [x] Add a secret screen that knowledge base can link to if the user specifically asks for it
 
 
 ## Articles
@@ -22,7 +22,7 @@
 - [ ] Website GA4 Dashboard
 - [ ] OCR for companies house
 - [ ] Audio Analysis
-- [ ] Add Visuals to Markdown Pages
+- [x] Add Visuals to Markdown Pages
 
 ## Certifications
 - [x] DP-700: Fabric Data Engineer Associate
