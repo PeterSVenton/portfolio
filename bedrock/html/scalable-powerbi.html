@@ -67,8 +67,9 @@ This makes models self-documenting and easier to maintain at scale.</p>
 |---------|----------|----------|--------------|
 | <code>_</code> | Base measure using aggregation only | <code>_sumSales</code> | Simple aggregation (no CALCULATE) |
 | <code>?</code> | Measure altering filter context | <code>?sumSales(Year=2025)</code> | Uses CALCULATE or context manipulation |
+| <code>^</code> | Measure that uses an iterator function | <code>^sumxNetInvoiceValue(dim_date)</code> | Uses an iterator function to compute a measurre over a table |
 | <code>%</code> | Ratio or rate | <code>%Margin</code> | Value between 0 and 1 |
-| <code>$</code> | Derived measure using other measures | <code>$Margin£</code> | Combines other measures (e.g. <code>DIVIDE([_sumProfit], [_sumSales])</code>) |
+| <code>$</code> | Derived measure using other measures | <code>$Margin</code> | Combines other measures (e.g. <code>DIVIDE([_sumProfit], [_sumSales])</code>) |
 | <code>></code> | Selection-driven measure | <code>>SelectedYear</code> | Uses SELECTEDVALUE |
 | <code>*</code> | Independent measure | <code>*WeekToday</code> | No table dependencies (e.g. <code>WEEKNUM(TODAY())</code>) |
 | <code>@</code> | Local-only measure | <code>@DebugValue</code> | Exists only in PBIP, not the parent model |

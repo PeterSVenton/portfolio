@@ -1,0 +1,23 @@
+{
+  "metadataAttributes": {
+    "url": "https://www.peterventon.co.uk/kb-internal/programming-languages",
+    "active": true,
+    "internalDocument": true,
+    "title": "Programming Languages",
+    "summary": "A clear overview of the programming languages I use, how I apply them in my work, and my level of fluency with each one.",
+    "slug": "languages",
+    "keywords": [
+      "programming languages",
+      "Python",
+      "SQL",
+      "Typescript",
+      "Javascript",
+      "Dart",
+      "C#",
+      "DAX",
+      "KQL",
+      "PowerFx",
+      "NoSQL"
+    ]
+  }
+}
