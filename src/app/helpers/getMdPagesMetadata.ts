@@ -2,7 +2,6 @@ import { getMdPages } from "./getMdPages";
 
 export async function getMdPagesMetadata(directory: "projects" | "articles"){
     const pages = getMdPages(directory)
-    console.log(pages)
     const output = []
 
     for (const p of pages){

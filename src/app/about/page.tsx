@@ -107,8 +107,8 @@ export default function AboutPage() {
             url: 'https://www.peterventon.co.uk/',
             sameAs: [
               'mailto:contact@peterventon.co.uk',
-              'https://www.linkedin.com/in/your-handle',
-              'https://github.com/your-handle',
+              'https://www.linkedin.com/in/peter-venton-082bb3230/',
+              'https://github.com/PeterSVenton',
             ],
           }),
         }}
