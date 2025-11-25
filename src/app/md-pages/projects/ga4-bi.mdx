@@ -1,0 +1,346 @@
+---
+active: true  
+type: Project  
+title: Building a GA4 Analytics Pipeline With BigQuery and Power BI  
+description: How I transformed Google Analytics 4 export tables into a clean dimensional model for Power BI  
+date: 02/03/2026  
+projectType: Personal project
+readMins: 10
+stack:
+  - GA4
+  - BigQuery
+  - Power BI
+links:
+  repo: https://github.com/PeterSVenton/portfolio
+---
+
+import { Callout } from "@/components/callouts"
+
+# Building a GA4 Analytics Pipeline With BigQuery and Power BI
+
+## Overview
+
+I wanted a way to demonstrate my ability to work across the full analytics engineering process using real data. My portfolio website already had user activity, so I decided to use Google Analytics 4 (GA4) as the event collection layer and build a complete data pipeline on top.
+
+This project covers the full workflow, including event collection, export to BigQuery, dimensional modeling, incremental ETL, and Power BI reporting. The result is a production-style analytics pipeline built on real usage data from my website.
+
+<Callout kind="success">This article describes how the GA4 export tables work, how I remodelled them into fact and dimension tables, why the dimensional model provides value, and how I connected the model into Power BI.</Callout>
+
+---
+
+## 1. Understanding the GA4 Export Tables
+
+When GA4 exports data to BigQuery, it produces a set of daily summary tables. These tables are partitioned by the `_DATA_DATE` column and contain different types of behavioural information. For the purposes of building a dimensional model, the most important summary tables are described below.
+
+### 1.1 ga4_TrafficAcquisition
+
+This table contains session-level acquisition metrics such as:
+
+- `sessionDefaultChannelGroup`  
+- `sessionSource`  
+- `sessionMedium`  
+- `sessions`, `eventCount`, `engagedSessions`  
+- `totalRevenue`  
+- `_DATA_DATE` (partition)  
+
+This table is the basis for understanding daily traffic by acquisition channel.
+
+### 1.2 ga4_UserAcquisition
+
+This table focuses on first-user acquisition and includes fields such as:
+
+- `firstUserSource`  
+- `firstUserMedium`  
+- `firstUserCampaignName`  
+- `newUsers`, `totalUsers`  
+- `_DATA_DATE`  
+
+This is used to understand how new visitors first discovered the website.
+
+### 1.3 ga4_PagesAndScreens
+
+This table provides page level behavioural data:
+
+- `unifiedPagePathScreen`  
+- `unifiedScreenName`  
+- `screenPageViews`  
+- `activeUsers`  
+- `eventCount`  
+- `keyEvents`  
+- `userEngagementDuration`  
+- `_DATA_DATE`  
+
+This table is central for page performance analysis.
+
+### 1.4 ga4_TechDetails
+
+This table provides information about the devices and platforms used:
+
+- `deviceCategory`  
+- `operatingSystem`  
+- `browser`  
+- `screenResolution`  
+- `platformDeviceCategory`  
+- `_DATA_DATE`  
+
+This forms the basis for device and platform analytics.
+
+<Callout kind="info" title="How GA4 exports behave">The GA4 export writes a new partition for each day. Summary tables are already aggregated, which makes them smaller and easier to query, but they are not modelled for reporting. The dimensional model described later assumes these tables are refreshed reliably each day.</Callout>
+
+### Why the Raw GA4 Tables Are Not Suitable for BI
+
+The GA4 export schema is intended for Google's built in reporting. It is not structured for BI tools. The main issues include:
+
+- No foreign keys between tables  
+- Mixed grains, such as session, page, user, and device  
+- Dimension attributes repeated across tables  
+- String based joins, which are slow and ambiguous  
+- Inconsistent naming between summary tables  
+- No conformed dimensions for reporting  
+
+To build a model suitable for analysis, I remodelled the dataset into a star schema.
+
+<Callout kind="warning" title="Common mistake">A typical mistake is to connect Power BI directly to the raw GA4 export tables and start building visuals. This works for a few charts, but quickly becomes difficult to maintain and almost impossible to scale as more questions and stakeholders appear.</Callout>
+
+---
+
+## 2. Why a Dimensional Model Was Needed
+
+A dimensional model resolves the problems created by the GA4 export structure.
+
+### Clean, conformed dimensions  
+
+Traffic sources, pages, devices, and dates become reusable lookup tables.
+
+### A single grain per fact  
+
+Each fact table represents a specific analytical concept.
+
+### Stable surrogate keys  
+
+Surrogate keys replace long, inconsistent GA4 strings.
+
+### Better BI performance  
+
+Joins become predictable and efficient.
+
+### Support for incremental loading  
+
+Since GA4 exports data daily by `_DATA_DATE`, the model can be updated incrementally.
+
+### Industry standard design  
+
+This approach reflects how analytics engineering is typically performed in production.
+
+<Callout kind="tip" title="Why model first">It is often tempting to start with visuals and work backwards. In practice, investing time up front in a clear dimensional model saves significantly more time later when new questions arise or when the report needs to be extended.</Callout>
+
+---
+
+## 3. The Final Star Schema
+
+The model consists of four dimension tables and four fact tables. The diagram below shows how they relate.
+
+``` mermaid
+graph TD
+    dim_date["dim_date"] --> fact_traffic_acquisition["fact_traffic_acquisition"]
+    dim_traffic_source["dim_traffic_source"] --> fact_traffic_acquisition
+
+    dim_date --> fact_user_acquisition["fact_user_acquisition"]
+    dim_traffic_source --> fact_user_acquisition
+
+    dim_date --> fact_page_metrics["fact_page_metrics"]
+    dim_page["dim_page"] --> fact_page_metrics
+
+    dim_date --> fact_device_metrics["fact_device_metrics"]
+    dim_device["dim_device"] --> fact_device_metrics
+```
+
+These tables were built directly in BigQuery. Since GA4 exports natively into BigQuery, this approach avoids any data movement costs and keeps the overall pipeline inexpensive to operate. The same modelling pattern could be implemented in other warehouses such as Microsoft Fabric, Azure SQL, or Amazon Redshift, but BigQuery remains the most cost efficient option for GA4 data.
+
+<Callout kind="info" title="Design goal">The star schema is intentionally small. It focuses only on the dimensions and metrics that are useful for my portfolio website, which keeps the model easy to understand while still demonstrating realistic analytics patterns.</Callout>
+
+---
+
+## 4. Dimension Tables
+
+The dimension tables standardise descriptive attributes and are referenced by all fact tables.
+
+### 4.1 dim_date
+
+This table is generated using the minimum and maximum `_DATA_DATE` across all GA4 tables. It contains fields such as:
+
+- date  
+- year  
+- month  
+- day  
+- ISO week  
+- quarter  
+
+The primary key is a `dim_date_key` formatted as `YYYYMMDD`.
+
+### 4.2 dim_traffic_source
+
+GA4 includes traffic source information in multiple tables, and the attributes vary depending on scope. I consolidated these fields into one dimension with the following attributes:
+
+- scope (`SESSION` or `FIRST_USER`)  
+- default_channel_group  
+- source  
+- medium  
+- campaign  
+
+Each unique combination receives a stable surrogate key generated using a fingerprint hash.
+
+<Callout kind="tip" title="Session vs first user">Separating `SESSION` and `FIRST_USER` in the same traffic dimension makes it easy to reuse the same table for both session based and new user based analysis, while still preserving the correct grain in each fact table.</Callout>
+
+### 4.3 dim_page
+
+This table is built from the pages and screens table and includes page level attributes:
+
+- page_url  
+- page_title  
+- screen_class  
+
+Each URL receives a unique `dim_page_key`.
+
+### 4.4 dim_device
+
+This dimension contains device and platform attributes:
+
+- device_category  
+- operating_system  
+- operating_system_version  
+- browser  
+- browser_version  
+- mobile_device_branding  
+- mobile_device_model  
+
+Each unique device configuration receives a `dim_device_key`.
+
+<Callout kind="info" title="Controlling cardinality">By hashing only a limited set of device attributes into `dim_device_key`, the model keeps dimension cardinality under control while still providing enough detail for meaningful analysis.</Callout>
+
+---
+
+## 5. Fact Tables
+
+Each fact table represents a different type of daily measurement.
+
+### 5.1 fact_traffic_acquisition
+
+Grain: date by session traffic source  
+Metrics include:
+
+- sessions  
+- engaged_sessions  
+- event_count  
+- engagement_rate  
+- total_revenue  
+
+Keys:
+
+- dim_date_key  
+- dim_traffic_source_key  
+
+### 5.2 fact_user_acquisition
+
+Grain: date by first-user traffic source  
+Metrics include:
+
+- new_users  
+- total_users  
+
+### 5.3 fact_page_metrics
+
+Grain: date by page  
+Metrics include:
+
+- screen_page_views  
+- active_users  
+- event_count  
+- key_events  
+- engagement_duration  
+
+### 5.4 fact_device_metrics
+
+Grain: date by device  
+Metrics include:
+
+- active_users  
+- engaged_sessions  
+- event_count  
+- total_revenue  
+
+<Callout kind="success" title="Resulting flexibility">With these fact tables in place, it becomes straightforward to answer questions such as which channels drive new users, which pages are most engaging, and how device types correlate with engagement and revenue.</Callout>
+
+---
+
+## 6. Incremental ETL in BigQuery
+
+GA4 exports data once per day. This allows the ETL pipeline to run incrementally, processing only new data.
+
+Below is an example of the incremental pattern used for fact tables.
+
+``` sql
+INSERT INTO ga4_data.fact_page_metrics (...)
+SELECT ...
+FROM ga4_data.ga4_PagesAndScreens
+WHERE _DATA_DATE > (SELECT MAX(date) FROM ga4_data.fact_page_metrics);
+```
+
+This approach keeps processing costs low and avoids reprocessing historical data. All transformations run as BigQuery Scheduled Queries.
+
+<Callout kind="info" title="Why incremental loads matter">Incremental loading means the cost and runtime of the pipeline grow very slowly as data accumulates. For personal projects it keeps costs negligible, and the same pattern scales to significantly larger datasets.</Callout>
+
+---
+
+## 7. Connecting the Model to Power BI
+
+Power BI includes a native connector for BigQuery. Connecting the dimensional model is straightforward:
+
+1. Open Power BI Desktop  
+2. Select Get Data → Google BigQuery  
+3. Authenticate and choose the dataset containing the fact and dimension tables  
+4. Load the tables into Power BI  
+5. Define the relationships:  
+   - fact.dim_date_key → dim_date.dim_date_key  
+   - fact.dim_page_key → dim_page.dim_page_key  
+   - fact.dim_device_key → dim_device.dim_device_key  
+   - fact.dim_traffic_source_key → dim_traffic_source.dim_traffic_source_key  
+
+The diagram below shows how the tables appear in Power BI after relationships are created.
+
+``` mermaid
+graph TD
+    dim_date["dim_date"] --> fact_traffic_acquisition["fact_traffic_acquisition"]
+    dim_traffic_source["dim_traffic_source"] --> fact_traffic_acquisition
+
+    dim_date --> fact_user_acquisition["fact_user_acquisition"]
+    dim_traffic_source --> fact_user_acquisition
+
+    dim_date --> fact_page_metrics["fact_page_metrics"]
+    dim_page["dim_page"] --> fact_page_metrics
+
+    dim_date --> fact_device_metrics["fact_device_metrics"]
+    dim_device["dim_device"] --> fact_device_metrics
+```
+
+Once the model is connected, I built visuals to show daily traffic, page performance, device usage, acquisition trends, and user engagement.
+
+<Callout kind="tip" title="Using dimensions effectively">In Power BI, dimension tables should be used as the main entry point for filters and slicers. Facts provide the measures, but most user interaction happens through dimensions such as date, traffic source, page, and device.</Callout>
+
+---
+
+## Conclusion
+
+This project demonstrates the full analytics engineering lifecycle using real data from my website. By collecting events with GA4, exporting them to BigQuery, restructuring the raw tables into a dimensional model, building incremental ETL pipelines, and visualising the data in Power BI, I created a maintainable and scalable analytics workflow.
+
+This approach mirrors the process used in production analytics environments and highlights my capability in:
+
+- event design and data collection  
+- SQL transformation and modelling  
+- dimensional modelling principles  
+- ETL development and scheduling  
+- BI data modelling and report building  
+
+The resulting dashboard presents a clear view of how visitors interact with my site and provides a practical example of end to end data capability.
+
+<Callout kind="success" title="What this project shows">Overall, this pipeline shows how I move from raw tracking data to a reliable reporting layer, and how I design models that are both technically sound and straightforward for stakeholders to use.</Callout>
