@@ -5,13 +5,13 @@
 - [x] Store mdx files in centralised folder and transpile to html for AWS knowledge base
 - [x] Store Information for MD pages in frontmatter and use them to populate the "feeds"
 - [x] Setup AWS knowledge base with agent/gpt like screen
-- [ ] Write 5-10 work articles
-- [ ] Add Breadcrumbs / TOC to mdx pages
+- ~~[ ] Add Breadcrumbs / TOC to mdx pages~~
 - [ ] Header/Navbar doesn't render correctly on mobile when looking at certain md pages
 - [x] Add Custom page for knowledge base linking the user to a screen that doesn't exist
 - [x] Add Custom page for knowledge base linking the user to an unreleased piece of content
 - [x] Add Custom page for knowledge base linking the user to an internal doc (render the page but put a warning that its internal for kb context)
 - [x] Add a secret screen that knowledge base can link to if the user specifically asks for it
+- [ ] hide pages that are currently under development with a reroute to a custom page
 
 
 ## Articles
