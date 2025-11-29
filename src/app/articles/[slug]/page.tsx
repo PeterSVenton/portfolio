@@ -1,5 +1,7 @@
 import { getMdPages } from "@/app/helpers/getMdPages"
 import type { Metadata } from 'next'
+import { redirect } from "next/navigation"
+
 
 
 export default async function Page({
@@ -8,7 +10,11 @@ export default async function Page({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const { default: Post } = await import(`@/app/md-pages/articles/${slug}.mdx`)
+  const { default: Post, metadata } = await import(`@/app/md-pages/articles/${slug}.mdx`)
+
+  if (!metadata.active){
+    redirect("/bedrock/unreleased")
+  }
  
   return <Post />
 }
