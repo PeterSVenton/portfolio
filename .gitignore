@@ -40,3 +40,6 @@ bedrock_system_prompt.txt
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ignore bedrock folder as this is large files with bloat (used to be included but was adding a bunch of html files)
+/bedrock
