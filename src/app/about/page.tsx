@@ -125,6 +125,7 @@ export default function AboutPage() {
             <ul className="mt-1 space-y-0.5 list-disc">
               <li>DP700 – Microsoft Certified: Fabric Data Engineer Associate</li>
               <li>DP600 – Microsoft Certified: Fabric Analytics Engineer Associate</li>
+              <li>PL300 - Microsoft Certified: Power BI Data Analyst Associate</li>
               <li>Member of British Mensa</li>
             </ul>
           </div>
