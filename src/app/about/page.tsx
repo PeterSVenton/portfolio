@@ -3,6 +3,7 @@ import Image from 'next/image'
 import TrackLink from '@/components/TrackLink'
 import { SocialOrder, Socials } from '@/data/socials'
 import { config } from '@/data/config'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'About',
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto max-w-5xl px-4 py-12">
+    <main className="mx-auto max-w-5xl px-4 py-12 print:py-6">
       {/* SEO: person profile */}
       <script
         type="application/ld+json"
@@ -54,21 +55,21 @@ export default function AboutPage() {
           <ul className="mt-4 flex flex-wrap items-center gap-3 text-sm">
             {SocialOrder.map((label, key) => {
               const { href, Icon } = Socials[label]
-              const external = href.startsWith('http')
               return (
                 <li key={key}>
-                  <a
+                  <Link
                     href={href}
-                    target={external ? '_blank' : undefined}
-                    rel={external ? 'noopener noreferrer me' : undefined}
+                    target='_blank'
+                    rel={'noopener noreferrer me'}
                     className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-neutral-700 hover:bg-black/5"
                   >
                     <Icon size={24} />
                     <span>{label}</span>
-                  </a>
+                  </Link>
                 </li>
               )
             })}
+
             {config.showGit && (
               <li>
                 <a

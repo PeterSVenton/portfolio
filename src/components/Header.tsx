@@ -42,7 +42,7 @@ export default function Header() {
       initial={false}
       animate={{ y: hidden ? "-100%" : 0 }}
       transition={{ type: "spring", stiffness: 600, damping: 40, mass: 0.6 }}
-      className={`sticky top-0 z-50 bg-white/70 backdrop-blur ${
+      className={`sticky top-0 z-50 bg-white/70 backdrop-blur print:hidden ${
         !isAtTopOfPage ? "border-b" : ""
       }`}
       style={{ willChange: "transform" }}

@@ -1,5 +1,5 @@
 import { Mail, type LucideIcon } from 'lucide-react'
-import { CustomIcon, Github, Linkedin } from '@/components/svgs'
+import { CustomIcon, CV, Github, Linkedin,  } from '@/components/svgs'
 
 export type SocialMeta = {
     href: string,
@@ -18,9 +18,13 @@ export const Socials: Record<string, SocialMeta> = {
         Email: {
         href: "mailto:peterstevenventon@gmail.com",
         Icon: Mail
-    }
+    },
+        CV: {
+            href: "/PeterVentonCV.pdf",
+            Icon: CV
+        }
 }
 
 export type SocialKey = keyof typeof Socials
 
-export const SocialOrder: readonly SocialKey[] = ['Linkedin', 'Github', 'Email'] as const
+export const SocialOrder: readonly SocialKey[] = ['CV', 'Linkedin', 'Github', 'Email'] as const
