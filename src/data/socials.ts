@@ -20,8 +20,8 @@ export const Socials: Record<string, SocialMeta> = {
         Icon: Mail
     },
         CV: {
-            href: "/PeterVentonCV.pdf",
-            Icon: CV
+        href: "/PeterVentonCV.pdf",
+        Icon: CV
         }
 }
 
