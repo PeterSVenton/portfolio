@@ -7,6 +7,8 @@ import remarkMath from 'remark-math'
 import remarkFrontmatter from 'remark-frontmatter'
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import rehypeMermaid from 'rehype-mermaid';
+import { common } from 'lowlight'
+import dart from 'highlight.js/lib/languages/dart'
  
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -25,7 +27,7 @@ const withMDX = createMDX({
       [remarkMdxFrontmatter, { name: 'metadata' }]
     ],
     rehypePlugins: [
-      rehypeHighlight,
+      [rehypeHighlight, { languages: { ...common, dart } }],
       rehypeKatex,
       [rehypeExternalLinks, {
         target: "_blank",
