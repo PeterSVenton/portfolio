@@ -96,17 +96,36 @@ I'm not a design expert but I wanted the website to represent me. I've always fo
 
 ## Building the site
 
-Most of the build moved quickly because I’d already sketched the layout in [Figma](https://www.figma.com/). The first real decision was **how to publish articles** without dragging in a full CMS.
+Most of the build moved quickly because I'd already sketched the layout in [Figma](https://www.figma.com/). The main thing I had to figure out early was how to publish articles without pulling in a full CMS.
 
-I knew I wanted **Markdown/MDX** so content is easy to edit and version with the code. Next.js plays nicely here: I enabled MDX with a couple of **remark/rehype** plugins (including GitHub-flavoured markdown) so I get tables, task lists, and autolinked headings out of the box.
+I went with **Markdown/MDX** so content stays easy to edit and version alongside the code. I configured MDX in `next.config.mjs` with a handful of remark and rehype plugins:
+
+- `remark-gfm` for GitHub-flavoured markdown (tables, task lists, autolinks)
+- `remark-math` and `rehype-katex` for LaTeX math rendering
+- `remark-frontmatter` and `remark-mdx-frontmatter` to parse YAML frontmatter and export it as a `metadata` object from each MDX file
+- `rehype-highlight` for syntax highlighting via `highlight.js`
+- `rehype-mermaid` to compile mermaid diagram blocks to SVGs at build time
+- `rehype-external-links` to add `target="_blank"` and `rel="noopener noreferrer nofollow"` to outbound links
+
+`remark-mdx-frontmatter` is probably the most important one. It's what lets me read fields like `title`, `description`, and `active` directly in page components without a separate metadata fetch.
 
 ### Adding Markdown Support
 
-The default “one MDX file per route folder” pattern (e.g. `app/foo/page.mdx`) didn’t scale for me because every article would live in a different directory. Instead, I created a single dynamic route `app/[slug]/page.tsx` and keep all posts together in a common folder (`src/app/md-pages`). At **build time**, `generateStaticParams()` reads that folder to produce slugs, and the page loads the matching MDX:
+The default "one MDX file per route folder" pattern (e.g. `app/foo/page.mdx`) didn't work for me since every article would need its own directory. Instead I keep all content together under `src/app/md-pages/`:
+
+```
+src/app/md-pages/
+  projects/       ← project write-ups
+  articles/       ← blog/articles
+  kb-internal/    ← knowledge base documents (not all publicly linked)
+```
+
+Each content type has its own dynamic route. Projects live at `app/work/[slug]/page.tsx` and import from the `projects/` subdirectory:
 
 ```tsx
-// app/[slug]/page.tsx (simplified)
-import { articles } from "@/data/articles"
+// app/work/[slug]/page.tsx (simplified)
+import { getMdPages } from '@/app/helpers/getMdPages'
+import { redirect } from 'next/navigation'
 
 export default async function Page({
   params,
@@ -114,33 +133,61 @@ export default async function Page({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const { default: Post } = await import(`@/app/md-pages/${slug}.mdx`)
- 
+  const { default: Post, metadata } = await import(`@/app/md-pages/projects/${slug}.mdx`)
+
+  if (!metadata.active) {
+    redirect('/bedrock/unreleased')
+  }
+
   return <Post />
 }
- 
+
 export function generateStaticParams() {
-  
-  const slugs = articles.map(a => ({slug: a.slug}))
-  return slugs
+  const pages = getMdPages('projects')
+  return pages.map(p => ({ slug: p }))
 }
- 
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const { metadata } = await import(`@/app/md-pages/projects/${slug}.mdx`)
+  return {
+    ...metadata,
+    openGraph: {
+      title: metadata.title,
+      description: metadata.description,
+      url: `https://peterventon.co.uk/work/${slug}`,
+    },
+  }
+}
+
 export const dynamicParams = false
 ```
 
-This gives me clean URLs like /report-migration, a single source of truth for content, and no CMS overhead. The full architecture can be seen below:
+`getMdPages('projects')` is a small helper that reads the filesystem at build time and returns slugs. No hardcoded arrays, no CMS. The `active` frontmatter field works as a draft flag: set it to `false` and the page redirects to `/bedrock/unreleased` so I can keep work-in-progress in the repo without publishing it. `generateMetadata` picks up the same `metadata` export to fill `<title>` tags and Open Graph fields automatically.
+
+```ts
+// src/app/helpers/getMdPages.ts
+export function getMdPages(directory: 'articles' | 'projects' | 'kb-internal') {
+  const files = fs.readdirSync(path.join(process.cwd(), 'src', 'app', 'md-pages', directory))
+  return files
+    .filter(file => file.endsWith('.mdx') || file.endsWith('.md'))
+    .map(file => file.replace(/\.mdx?$/, ''))
+}
+```
+
+So I end up with clean URLs like `/work/report-migration` and `/articles/dp-700-experience`, and the folder is the single source of truth for what pages exist.
 
 ```mermaid
 graph LR
-  A["/app/[slug]/page.tsx"] --> B["Dynamic Import of MDX File"]
+  A["/app/work/[slug]/page.tsx"] --> B["Dynamic Import of MDX File"]
   B --> C["React Component Rendered"]
   C --> D["Static Page HTML"]
-  D --> E["Deployed on Vercel / S3"]
+  D --> E["Deployed on AWS Amplify"]
 ```
 
 ### Integrating AWS Knowledge Base
 
-Since I wanted to add a chatbot to the site to showcase my ability to use cutting edge technology I was happy to see knowledge base supported markdown files natively. The issue was I wasn't using `.md` files, I'm using `.mdx` files. These are exactly the same as markdown but it lets me use react components inside my markdown. 
+Since I wanted to add a chatbot to the site to showcase my ability to use cutting edge technology I was happy to see knowledge base supported markdown files natively. The issue was I wasn't using `.md` files, I'm using `.mdx` files. These are exactly the same as markdown but it lets me use react components inside my markdown.
 
 i.e. On my report migration article you'll see the below.
 
@@ -160,12 +207,11 @@ See the below snippet for the mdx file's content.
 </div>
 ```
 
-This isn't standard markdown and not supported by knowlegde base. I could have dropped the custom components just for knowledge base but I thought they provided important content. Therefore I checked for other supported file types in knowledge base and saw it supports html. 
+This isn't standard markdown and not supported by knowlegde base. I could have dropped the custom components just for knowledge base but I thought they provided important content. Therefore I checked for other supported file types in knowledge base and saw it supports html.
 
-This browser is rendering html so all my mdx pages can compile to raw html. In order to do this I prebuild my html content for knowledge base and output it to `bedrock/html`. I came up with the below function to convert my mdx files into html and store them at the output location.
+This browser is rendering html so all my mdx pages can compile to raw html. In order to do this I prebuild my html content for knowledge base and output it to `bedrock/html`. The script lives at `src/scripts/mdxtohtml.mjs`:
 
 ```mjs
-// scripts/mdxtohtml.mjs
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -177,10 +223,10 @@ import { unified } from 'unified'
 import rehypeParse from 'rehype-parse'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
+import rehypeMermaid from 'rehype-mermaid'
+import matter from 'gray-matter'
 import { Metric, Callout } from '@/components/callouts'
 
-
-// super basic function
 function stripImports(file) {
   return file
     .split(/\n/)
@@ -188,16 +234,36 @@ function stripImports(file) {
     .join('\n')
 }
 
-const components = { Metric, Callout }
+function flattenObject(obj, parentKey = '', result = {}) {
+  for (const [key, value] of Object.entries(obj)) {
+    const newKey = parentKey ? `${parentKey}_${key}` : key
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      flattenObject(value, newKey, result)
+    } else {
+      result[newKey] = value
+    }
+  }
+  return result
+}
 
+function getPageUrl(filePath) {
+  const base = 'https://www.peterventon.co.uk'
+  const parts = filePath.split(path.sep)
+  const mdPagesDir = parts[parts.length - 2]
+  const slug = parts[parts.length - 1].replace(/\.mdx$/, '')
+  if (mdPagesDir.toLowerCase() === 'projects') return `${base}/work/${slug}`
+  return `${base}/${mdPagesDir}/${slug}`
+}
+
+const components = { Metric, Callout }
 const MD_FILES_PATH = path.join(process.cwd(), 'src/app/md-pages')
 const OUTPUT_PATH = path.join(process.cwd(), 'bedrock', 'html')
 
-// scripts/mdxtohtml.mjs
-// compiles a mdx page to html, requires the components to be specified
 async function compileOne(filePath) {
-  const mdx = await fs.readFile(filePath, 'utf8')
-  const mdxClean = stripImports(mdx)
+  const raw = await fs.readFile(filePath, 'utf8')
+  // gray-matter splits the YAML frontmatter from the MDX body
+  const { data: metadata, content } = matter(raw)
+  const mdxClean = stripImports(content)
 
   const { default: MDXContent } = await evaluate(mdxClean, {
     ...runtime,
@@ -211,6 +277,7 @@ async function compileOne(filePath) {
     await unified()
       .use(rehypeParse, { fragment: true })
       .use(rehypeSanitize)
+      .use(rehypeMermaid)   // compile mermaid blocks to SVG before writing
       .use(rehypeStringify)
       .process(html)
   )
@@ -218,26 +285,40 @@ async function compileOne(filePath) {
   const slug = path.basename(filePath).replace(/\.mdx$/, '')
   await fs.mkdir(OUTPUT_PATH, { recursive: true })
   await fs.writeFile(path.join(OUTPUT_PATH, `${slug}.html`), safe, 'utf8')
+
+  // write a metadata sidecar that Bedrock uses for filtering and citations
+  const bedrock_metadata = {
+    metadataAttributes: {
+      url: getPageUrl(filePath),
+      ...flattenObject(metadata)
+    }
+  }
+  await fs.writeFile(
+    path.join(OUTPUT_PATH, `${slug}.html.metadata.json`),
+    JSON.stringify(bedrock_metadata, null, 2),
+    'utf-8'
+  )
 }
 
-// this is tied to a npm script in package.json so you specify an argument
 async function run() {
   const args = process.argv.slice(2)
-  if (args.length === 0){
-    throw new Error("Must specify an argument, to build all run with -a")
+  if (args.length === 0) {
+    throw new Error('Must specify an argument, to build all run with -a')
   }
 
-  // checks every file in the md-pages dir
   if (args.includes('-a')) {
-    const files = (await fs.readdir(MD_FILES_PATH)).filter(f => /\.mdx$/.test(f))
-    for (const f of files) {
-      try { await compileOne(path.join(MD_FILES_PATH, f)); console.log('generated html for', f) }
-      catch (e) { console.error('failed to generate html for', f, '\n', e) }
+    // iterate over every subdirectory in md-pages (projects, articles, kb-internal…)
+    const directories = await fs.readdir(MD_FILES_PATH)
+    for (const d of directories) {
+      const files = (await fs.readdir(path.join(MD_FILES_PATH, d))).filter(f => /\.mdx$/.test(f))
+      for (const f of files) {
+        try { await compileOne(path.join(MD_FILES_PATH, d, f)); console.log('generated html and metadata for', f) }
+        catch (e) { console.error('failed to generate html/metadata for', f, '\n', e) }
+      }
     }
     return
   }
 
-  // build just the provided slugs/paths
   for (const arg of args) {
     const abs = path.resolve(arg)
     try { await compileOne(abs); console.log('generated html for', abs) }
@@ -248,44 +329,13 @@ async function run() {
 run().catch(err => (console.error(err), process.exit(1)))
 ```
 
-Lets simplify this and break my solution down
+`gray-matter` is used to strip the YAML frontmatter before passing the content to `evaluate()` since it would choke on the `---` delimiters otherwise. The extracted `metadata` object then gets written out as a Bedrock sidecar file alongside the HTML. `rehypeMermaid` runs inside the unified pipeline so mermaid blocks get compiled to inline SVGs before the file is written, since the knowledge base has no idea what to do with raw mermaid syntax.
 
-We have a function to compile a single mdx page named `compileOne()` which takes the path to a mdx file.
+Each file produces two outputs: `slug.html` and `slug.html.metadata.json` with fields like `url`, `title`, `date`, and `stack`. Bedrock uses the sidecar for relevance filtering and to populate the citation URLs in the chat UI.
 
-This is what the function does
-```mjs
-  // read the file from the filesystem 
-  const mdx = await fs.readFile(filePath, 'utf8')
-  // this just strips the import statements at the top of the mdx file because of how evaluate() works 
-  const mdxClean = stripImports(mdx)
+The `run()` function iterates over subdirectories rather than a flat folder, which matches the same structure the Next.js routes use.
 
-  // evaluate takes the given content and turns it into html, useMDXComponents lets it know about custom components which we store in our components variable
-  const { default: MDXContent } = await evaluate(mdxClean, {
-    ...runtime,
-    useMDXComponents: () => components,
-    baseUrl: pathToFileURL(filePath)
-  })
-  
-  //normally React.createElement is called by BABEL but here we manually instantiate it to get our html tree
-  const html = renderToStaticMarkup(React.createElement(MDXContent, { components }))
-
-
-  // finally get the content
-  const safe = String(
-    await unified()
-    .use(rehypeParse, { fragment: true })
-    .use(rehypeSanitize)
-    .use(rehypeStringify)
-    .process(html)
-    )
-
-  // write the html to a file in the bedrock/html folder
-  const slug = path.basename(filePath).replace(/\.mdx$/, '')
-  await fs.mkdir(OUTPUT_PATH, { recursive: true })
-  await fs.writeFile(path.join(OUTPUT_PATH, `${slug}.html`), safe, 'utf8')
-```
-
-We have a run function that loops over every file in md-pages and calls compile one. I made sure to add this to my npm scripts so I have a quick way to compile all my `.mdx` files to html. In this project's `package.json` you'll see:
+I added this to the npm scripts so I can compile everything with one command. In `package.json`:
 
 ```json
 "scripts": {
@@ -293,16 +343,15 @@ We have a run function that loops over every file in md-pages and calls compile 
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-
-    // custom script we added
     "kb:build": "tsx -r tsconfig-paths/register src/scripts/mdxtohtml.mjs"
   }
 ```
 
 This output folder is what bedrock builds the knowledge base off of so when a user asks a question it is able to have relevant information to answer the user's question. The full design can be seen in the graph below:
+
 ```mermaid
 graph LR
-  A["MDX Files (.mdx)"] --> B["MDX → HTML Compiler (mdxtohtml.mjs)"]
+  A["MDX Files (.mdx)"] --> B["MDX → HTML + Metadata Compiler (mdxtohtml.mjs)"]
   B --> C["Output Folder: bedrock/html"]
   C --> D["S3 Bucket (Knowledge Base Store)"]
   D --> E["AWS Bedrock Knowledge Base"]
@@ -346,163 +395,206 @@ The first thing I learned is I was going to need a cookie banner, since I would 
     </html>
 ```
 
-The `<Script />` is handling the cookie banner. You can also see the `GoogleAnalytics` tag which is keeping track of key user events I want to show on my PowerBI report.
+The `<Script />` is handling the cookie banner. ConsentManager's autoblocking script gates the `<GoogleAnalytics>` tag so analytics only fires once the user has accepted cookies. GA4 then handles the basics automatically, things like page views, scroll depth, outbound clicks, and session data, without any extra instrumentation code.
 
-#### Tracking Events using GA4
-Once the cookie banner was in place and GA4 started collecting anonymized session data, the next step was to decide which events to track. GA4 automatically tracks common interactions (page views, scrolls, outbound clicks, etc.), but I wanted more granular insight into how users explore the site, particularly on how they engage with my projects and articles.
+#### From GA4 to Power BI
 
-I started by defining a simple event schema aligned with my content structure:
+Once data starts accumulating in GA4 it automatically exports raw event tables to BigQuery via the native GA4 integration. From there I built a transformation pipeline and a Power BI report on top of the real usage data from this site. That process is covered in the [GA4 Analytics Pipeline](/work/ga4-bi) project.
 
-| Event Name | Trigger | Parameters |
-| --- | --- | --- |
-| View Project | When a user opens a project article | `{ project_name, category }` |
-| view_article | When a user opens a blog/article | `{ article_title, topic }` |
-| cta_click | When a user clicks an external or contact link | `{ cta_type, destination }` |
-| scroll_depth | When a user scrolls beyond 75% of a page | `{ page_path }`|
-
-These events let me answer questions like:
-
-- Which projects attract the most attention?
-- Do visitors read technical articles in full, or bounce early?
-- Which calls to action convert best?
-
-To implement this, I used Google’s gtag.js API directly within my Next.js components. For example, every time a project page renders, it logs a `view_project` event:
-
-```tsx
-'use client'
-import { useEffect } from 'react'
-import { sendGAEvent } from '@next/third-parties/google'
-
-export default function ProjectView({ projectName, category }) {
-  useEffect(() => {
-    sendGAEvent('event', 'view_project', {
-      project_name: projectName,
-      category,
-    })
-  }, [projectName, category])
-  return
-}
-```
-
-Because the cookie banner controls consent, this script only fires once the user has accepted analytics cookies, keeping tracking compliant and transparent.
-
-Over time, these events accumulate into a small but meaningful dataset in BigQuery, where GA4 automatically exports its underlying tables. I then transform this into a star schema for powerBI. That dataset becomes the foundation for a Power BI report showing real world usage metrics for my own site, everything from traffic by page to conversion paths and engagement time.
-
-By designing and instrumenting GA4 myself, I demonstrated the entire workflow I’d use in a production analytics environment:
-
-- **Instrumentation** (deciding what to measure)
-- **Collection** (ensuring compliant data capture)
-- **Transformation** (cleaning and reshaping GA data for Power BI)
-- **Visualization** (telling the story of user engagement)
-
-It’s a small project, but it neatly ties together my skills in **web development**, **data engineering**, and **business intelligence**, all using the real data from [peterventon.co.uk](https://www.peterventon.co.uk/).
-
-If this was confusing the graph below shows the full process flow:
 ```mermaid
 graph LR
-  A["Website Events (gtag.js)"] --> B["GA4 Property"]
+  A["Website Events (GA4 auto-tracking)"] --> B["GA4 Property"]
   B --> C["BigQuery Export"]
   C --> D["Data Transformation"]
   D --> E["Power BI Report"]
 ```
 
-#### A/B Testing
-Once I had event tracking and analytics flowing into GA4, the next logical step was to explore A/B testing. This would let me use data to validate design and content decisions rather than relying purely on intuition.
+### Custom Event Tracking
 
-Because this is a personal site, I wanted a lightweight, privacy-friendly approach that still demonstrates **the core principles of experimentation** you’d use in a professional environment.
-
-##### Designing the Experiment
-The hypothesis was simple:
-
-> Would changing how I present my featured projects increase the percentage of users who click through to view them?
-
-I created two versions of the homepage hero section:
-- **Variant A**: Clean, text-focused layout with short project descriptions.
-- **Variant B**: Card-style layout with preview images and a stronger “View Project” call-to-action.
-
-Rather than deploy two separate builds, I controlled the variant logic directly in Next.js using a client side flag persisted in localStorage (so users consistently see the same version):
+GA4 handles the automatic stuff fine, but I also wanted to track intentional interactions like clicking a nav item, a citation link from the chat, or the "Get In Touch" CTA. I built a thin `TrackLink` wrapper around Next.js `Link` to handle this:
 
 ```tsx
-'use client'
-import { useEffect, useState } from 'react'
-import { sendGAEvent } from '@next/third-parties/google'
+"use client"
 
-export default function HomeExperiment({ childrenA, childrenB }) {
-  const [variant, setVariant] = useState<string | null>(null)
+import Link, { LinkProps } from "next/link"
+import * as React from "react"
 
-  useEffect(() => {
-    // Randomly assign A or B if not already assigned
-    let v = localStorage.getItem('ab_variant')
-    if (!v) {
-      v = Math.random() < 0.5 ? 'A' : 'B'
-      localStorage.setItem('ab_variant', v)
-    }
-    setVariant(v)
-    sendGAEvent('event', 'ab_variant_assigned', { variant: v })
-  }, [])
+type Props = Omit<React.ComponentProps<'a'>, 'href' | 'onClick'> & LinkProps & {
+  gaEvent?: string
+  gaParams?: Record<string, string>
+}
 
-  if (!variant) return null
-  return variant === 'A' ? childrenA : childrenB
+export default function TrackLink({
+  gaEvent = "link_click",
+  gaParams,
+  href,
+  ...rest
+}: Props) {
+  return (
+    <Link
+      href={href}
+      {...rest}
+      onClick={() => {
+        const h = typeof href === "string" ? href : href?.pathname ?? String(href)
+        window.gtag?.("event", gaEvent, { href: h, ...gaParams })
+      }}
+    />
+  )
 }
 ```
 
-This setup makes it trivial to wrap experimental content:
+The default event is `link_click` but any component can pass a custom `gaEvent` and `gaParams`. The `?.` optional chaining means it does nothing if GA4 hasn't loaded yet (i.e. the user hasn't accepted cookies), so there's no console noise. The header fires `nav_click` and `cta_click` directly on `onClick` handlers using the same `window.gtag` pattern.
+
+### Building the Header
+
+The header took a bit more work than I expected.
+
+#### Scroll hide
+
+I wanted the header to hide when you scroll down and reappear when you scroll up, the same pattern you see on Medium and GitHub. I used framer-motion's `useMotionValueEvent` to watch `scrollY` without triggering re-renders on every pixel:
 
 ```tsx
-<HomeExperiment
-  childrenA={<ProjectsTextOnly />}
-  childrenB={<ProjectsWithImages />}
-/>
-```
+const { scrollY } = useScroll()
 
-GA4’s custom events and exploration reports make it easy to compare outcomes.
-Each time a user clicks into a project, the event payload includes the assigned variant:
-
-```tsx
-sendGAEvent('event', 'view_project', {
-  project_name,
-  variant: localStorage.getItem('ab_variant'),
+useMotionValueEvent(scrollY, "change", (latest) => {
+  const prev = scrollY.getPrevious() ?? 0
+  setIsAtTopOfPage(latest <= 100)
+  if (latest > prev && latest > 30) setHidden(true)
+  else if (latest < prev) setHidden(false)
 })
 ```
 
-From there, I can visualize the performance of Variant A vs B in Power BI, calculating metrics like:
+The `motion.header` then animates between `y: 0` and `y: "-100%"` using a spring so the transition doesn't feel jarring:
 
-- **Click through rate (CTR)** per variant
-- **Average engagement time**
-- **Bounce rate** and **scroll depth**
-
-Even though this is a small scale personal experiment, it mirrors how professional analytics teams run iterative design tests:
-- **Form** a measurable hypothesis.
-- **Randomly assign users** to variants.
-- **Collect event level data** through GA4.
-- **Analyze statistically** which variant drives better engagement.
-
-Overall this allowed me to turn my own portfolio site into a living experiment. See the full A/B implementation below.
-
-```mermaid
-graph LR
-  A["User Visit"] --> B{"Random Assignment"}
-  B --> C["Variant A (Text Layout)"]
-  B --> D["Variant B (Image Layout)"]
-  C --> E["GA4 Event: view_project {variant:A}"]
-  D --> F["GA4 Event: view_project {variant:B}"]
-  E --> G["BigQuery / Power BI Analysis"]
-  F --> G
+```tsx
+<motion.header
+  animate={{ y: hidden ? "-100%" : 0 }}
+  transition={{ type: "spring", stiffness: 600, damping: 40, mass: 0.6 }}
+  className="sticky top-0 z-50 bg-white/70 backdrop-blur"
+>
 ```
+
+The border on the bottom only appears once you've scrolled past the top (`isAtTopOfPage`), so the hero page looks borderless.
+
+#### Nav pill animation
+
+The active nav item and hovered item share one animated highlight using framer-motion's `layoutId`. Giving the same `layoutId` to a `motion.div` inside each nav item means framer-motion automatically moves it between items when focus changes:
+
+```tsx
+{(active || hovered === i) && (
+  <motion.div
+    layoutId="nav-pill"
+    className="absolute inset-0 rounded-full bg-black/10"
+    transition={{ type: "spring", stiffness: 500, damping: 40, mass: 0.6 }}
+  />
+)}
+```
+
+No manual position calculations, no CSS transitions to coordinate. It's probably my favourite framer-motion feature.
+
+#### Animated burger icon
+
+For mobile I built a custom SVG that morphs the three burger lines into an x using framer-motion path animation:
+
+```tsx
+<motion.svg width="24" height="20" animate={open ? "open" : "closed"}>
+  {/* top line → top-left to bottom-right diagonal */}
+  <motion.path
+    variants={{
+      closed: { d: "M 3 4.5 L 21 4.5" },
+      open:   { d: "M 4.5 4.5 L 19.5 19.5" },
+    }}
+    transition={{ type: "spring", stiffness: 400, damping: 35 }}
+  />
+  {/* middle line → fades out */}
+  <motion.path
+    d="M 3 10 L 21 10"
+    variants={{ closed: { opacity: 1 }, open: { opacity: 0 } }}
+  />
+  {/* bottom line → bottom-left to top-right diagonal */}
+  <motion.path
+    variants={{
+      closed: { d: "M 3 15.5 L 21 15.5" },
+      open:   { d: "M 4.5 19.5 L 19.5 4.5" },
+    }}
+    transition={{ type: "spring", stiffness: 400, damping: 35 }}
+  />
+</motion.svg>
+```
+
+Framer-motion interpolates the SVG `d` path attributes between variants so the lines actually animate into the x shape rather than just swapping icons. The mobile menu uses `AnimatePresence` with spring physics and closes automatically when the route changes via a `useEffect` watching `pathname`.
+
+### The Chat API
+
+The `/api/ask` route is a Next.js API route that calls AWS Bedrock on the server side.
+
+```ts
+import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand } from "@aws-sdk/client-bedrock-agent-runtime"
+import fs from "fs"
+import path from "path"
+
+const client = new BedrockAgentRuntimeClient({ region: "eu-central-1" })
+
+export async function POST(req: NextRequest) {
+  const { question } = await req.json()
+
+  // system prompt is written to disk during the Amplify build (fetched from SSM)
+  const bedrockSystemPrompt = fs.readFileSync(
+    path.join(process.cwd(), "bedrock_system_prompt.txt"), "utf8"
+  )
+
+  const cmd = new RetrieveAndGenerateCommand({
+    input: { text: question },
+    retrieveAndGenerateConfiguration: {
+      type: "KNOWLEDGE_BASE",
+      knowledgeBaseConfiguration: {
+        knowledgeBaseId: process.env.BEDROCK_KB_ID!,
+        modelArn: process.env.BEDROCK_MODEL_ARN!,
+        generationConfiguration: {
+          promptTemplate: { textPromptTemplate: bedrockSystemPrompt },
+        },
+        retrievalConfiguration: {
+          vectorSearchConfiguration: { numberOfResults: 6 },
+        },
+      },
+    },
+  })
+
+  const resp = await client.send(cmd)
+
+  // deduplicate citations — multiple retrieved chunks often come from the same page
+  const citationsMap = resp.citations
+    ?.flatMap(c => c.retrievedReferences || [])
+    ?.reduce((acc, r) => {
+      const url = r.metadata?.url ?? "/bedrock/missing"
+      const title = r.metadata?.title ?? "Untitled document"
+      const existing = acc.get(url)
+      if (existing) existing.count += 1
+      else acc.set(url, { title, url, count: 1 })
+      return acc
+    }, new Map())
+
+  return NextResponse.json({
+    answer: resp.output?.text,
+    citations: citationsMap ? Array.from(citationsMap.values()) : [],
+  })
+}
+```
+
+The system prompt lives in `bedrock_system_prompt.txt` which gets written to disk during the Amplify build when SSM secrets are fetched. Reading it from a file at runtime means I can update the prompt in AWS without redeploying, and it avoids the size limits you'd hit storing a longer prompt in an env var.
+
+Bedrock returns individual chunk references and a long article can contribute several chunks to the same answer. I reduce these with a `Map` keyed by URL so the UI shows one citation per source with a count, rather than the same link repeated. If a document somehow has no URL in its metadata the citation points to `/bedrock/missing` which is a dedicated route rather than a broken link.
 
 ### Conclusion
 
-Building this portfolio turned out to be much more than a frontend exercise, it became a full stack project that touches almost every part of modern analytics engineering. From rendering custom MDX components to wiring up GA4, BigQuery, and Power BI, each step reinforced how data, design, and engineering intersect.
+There ended up being more to this than I expected. Writing the MDX to HTML compiler, wiring up the Bedrock knowledge base, building the header animations and figuring out consent aware tracking all taught me things I wouldn't have picked up from tutorials alone.
 
-**Lessons Learned**
+A few things I'd do differently or took longer than expected:
 
-- **MDX → HTML conversion** wasn’t as simple as expected. Evaluating MDX at build time and sanitizing it safely for Bedrock ingestion required careful control over imports and React rendering. It taught me a lot about how static generation pipelines and content sanitization actually work under the hood.
-
-- **GA4’s event schema** is flexible but verbose. Flattening nested JSON structures into queryable BigQuery tables highlighted the importance of clear event design and consistent parameter naming.
-
-- **Cookies and consent** in a server side rendered Next.js app took trial and error. Integrating ConsentManager cleanly into the app’s `<head>` logic gave me a practical understanding of privacy first analytics.
-
-- **Minimalism ≠ simplicity.** Designing a clean interface that still surfaces interactivity, analytics, and experimental UX took more iteration than expected, but it pushed me to think deliberately about user experience and performance.
+- Getting `evaluate()` to work with the frontmatter stripped correctly took a few attempts. The `gray-matter` split was the fix but it wasn't obvious at first.
+- The `layoutId` nav pill is one of those things that looks impressive but took maybe 10 minutes to build once I understood how framer-motion shared layouts work.
+- Storing the system prompt as a file rather than an env var was something I figured out after hitting limits. Worth knowing early if you're building anything similar.
+- The `languages` option in `rehype-highlight` replaces the default language set rather than adding to it. I only found this out when TSX stopped highlighting after I added Dart support.
 
 The full design of the website (at least as of the time of publishing this article) can be seen below:
 
@@ -518,8 +610,8 @@ graph TD
     %% Content layer
     I["Markdown (.mdx) Pages"] --> I1["Frontmatter Metadata"]
     I1 --> A2
-    I1 --> J["Runtime Script (mdx → html compiler)"]
-    K --> H["S3 HTML Files & Metadata"]
+    I1 --> J["kb:build Script (mdx → html + metadata)"]
+    J --> H["S3 HTML Files & Metadata Sidecars"]
     H --> G["AWS Bedrock Knowledge Base"]
 
     %% Backend / AI flow
@@ -532,8 +624,6 @@ graph TD
     B --> C["BigQuery"]
     C --> D["Power BI Report"]
 
-    %% DevOps / feedback loop
-    J --> K["CI/CD Pipeline"]
+    %% Hosting
+    A1 --> Z["AWS Amplify (CI/CD + Hosting)"]
 ```
-
-In the end, the project became a live demonstration of the same principles I apply professionally. **Structured data**, **measurable outcomes**, and **continuous improvement**. Every page, every event, and even every variant test is part of a feedback loop that makes both the codebase and the insights stronger over time.
