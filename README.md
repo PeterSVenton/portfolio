@@ -1,36 +1,5 @@
 # Personal Portfolio
 
-## Todo
-- [x] Add custom 404 page
-- [x] Store mdx files in centralised folder and transpile to html for AWS knowledge base
-- [x] Store Information for MD pages in frontmatter and use them to populate the "feeds"
-- [x] Setup AWS knowledge base with agent/gpt like screen
-- ~~[ ] Add Breadcrumbs / TOC to mdx pages~~
-- [ ] Header/Navbar doesn't render correctly on mobile when looking at certain md pages
-- [x] Add Custom page for knowledge base linking the user to a screen that doesn't exist
-- [x] Add Custom page for knowledge base linking the user to an unreleased piece of content
-- [x] Add Custom page for knowledge base linking the user to an internal doc (render the page but put a warning that its internal for kb context)
-- [x] Add a secret screen that knowledge base can link to if the user specifically asks for it
-- [ ] hide pages that are currently under development with a reroute to a custom page
+My personal portfolio site, built with Next.js. The backend is powered entirely by AWS microservices, with the site live at [peterventon.co.uk](https://www.peterventon.co.uk/).
 
-
-## Articles
-- [x] Power Automate at scale
-- [x] Report Builder / BOXI
-- [x] How the website was built
-- [ ] Consolidating Semantic Models / Making them reusable via PBIP/PBIR files
-- [ ] Website GA4 Dashboard
-- [ ] OCR for companies house
-- [ ] Audio Analysis
-- [x] Add Visuals to Markdown Pages
-
-## Certifications
-- [x] DP-700: Fabric Data Engineer Associate
-- [x] DP-600: Fabric Analytics Engineer Associate
-- [ ] PL-300: PowerBI Data Analyst Associate
-
-- [ ] AI-102: Azure AI Engineer Associate
-- [ ] DP-100: Azure Data Science Associate
-- [ ] AZ-204: Azure Developer Associate
-- [ ] AZ-305: Azure Solutions Architect Expert
-- [ ] AZ-400: Devops Engineer Expert
+Includes an AWS Bedrock integration for semantic search over MDX content, providing grounded answers to questions about me.
