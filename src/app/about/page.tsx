@@ -91,12 +91,13 @@ export default function AboutPage() {
             WHAT I DO
           </h2>
           <p>
-            BI engineering across modeling, reporting, and light automation. Most of my work sits
-            around building and maintaining semantic layers that support multiple teams.
+            Data engineering across modelling, pipelines, and internal tooling. Most of my work
+            sits around dbt, bringing software engineering best practices to data transformation.
+            Alongside building web applications that replace paid tools with in-house solutions.
           </p>
           <p>
-            I like working close to the business, helping translate questions into models,
-            definitions, and dashboards that people actually use.
+            I like working close to the business, helping translate real questions into models,
+            definitions, and tools that people actually use.
           </p>
         </div>
 
@@ -117,8 +118,7 @@ export default function AboutPage() {
           </h2>
 
           <p>
-            <span className="font-semibold">Tools:</span> Power BI, DAX, SQL, Power Automate,
-            Python, Azure, AWS.
+            <span className="font-semibold">Tools:</span> DBT, SQL, Python, Typescript, Azure, Power BI, AWS.
           </p>
 
           <div>
@@ -144,6 +144,9 @@ export default function AboutPage() {
             <li>
               • <strong>AI-powered portfolio assistant</strong> and personal site built with
               TypeScript and AWS Bedrock.
+            </li>
+            <li>
+              • <strong>Flutter app</strong> to track coffee analytics in the office.
             </li>
           </ul>
         </div>
